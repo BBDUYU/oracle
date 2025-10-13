@@ -1218,6 +1218,264 @@ from dual;
 select sysdate
     ,add_months(sysdate,3)
     ,add_months(sysdate,-3)
+    ,add_months(sysdate,3*12)
 from dual;
+
+--last_day 특정날짜가 속한 달의 가장 마지막 날짜를 리턴하는 함수
+--이번달의 마지막날짜
+select sysdate
+    ,last_day(sysdate)
+    ,to_char(last_day(sysdate),'dd')
+from dual;
+
+--달력 그리기 : 2020/02 마지막날짜 ? 
+
+
+select to_char(last_day(to_date('2020/02','yyyy/mm')),'dd')
+from dual;
+
+--오늘이 무슨요일인지
+select to_char(sysdate,'day') 
+    ,next_day(sysdate,'금요일')
+from dual;
+
+--형변환 함수
+-- to_number() 문자 -> 숫자
+select empno
+from emp;
+
+select substr(empno,-1)
+from emp;
+
+select to_number('432')+5
+from dual;
+
+select to_number('1,234','9G999')+5
+from dual;
+
+--to_char(숫자[,포맷, nls파라미터]) -> 문자변환
+--to_char(날짜[,포맷, nls파라미터]) -> 문자변환
+
+
+--홍길동 2,810,000 금액이 세 자리마다 콤마(,) 찍어서 출력
+select name, basicpay+sudang pay
+        ,to_char( basicpay + sudang, 'L9,999,999' )
+from insa;
+
+--nls 국가지원언어
+--  ㄴ 다양한 국가의 언어, 문자, 지역설정..관련 기능
+--  ㄴ [RR]/MM/DD
+--      YY 차이점
+
+select *
+from v$nls_parameters;
+
+select ename, sal, comm, 
+--to_char((sal+comm)*12,'$99,999.99')
+to_char((sal+nvl(comm,0))*12,'$99,999.99')
+from emp;
+--from emp where comm is not null;
+
+select to_char(34,'RN') from dual;
+select to_char(34,'rn') from dual;
+
+select to_char(-10000, 'L99G999D99MI'
+        , 'NLS_NUMERIC_CHARACTERS= '',.''
+      NLS_CURRENCY = ''AusDollars'' ') "Amount"
+from dual;
+
+--날짜 -> to_char 함수를이용해 -> 문자변환
+--to_char(날짜)
+select sysdate
+    ,to_char(sysdate,'yyyy-mm--dd ts')
+    ,to_char(sysdate,'yyyy')
+    ,to_char(sysdate,'mm')
+    ,to_char(sysdate,'dd')
+from dual;
+-- 복습문제
+1. dept 테이블에   deptno = 50,  dname = QC,  loc = SEOUL  로 새로운 부서정보 추가
+
+INSERT INTO dept VALUES(50, 'QC', 'SEOUL');
+
+1-2. dept 테이블에 QC 부서를 찾아서 부서명(dname)과 지역(loc)을 
+  dname = 현재부서명에 2를 추가,  loc = POHANG 으로 수정
+  
+update dept
+set dname=dname||'2', loc='POHANG'
+where dname='QC';
+  
+
+1-3. dept 테이블에서 QC2 부서를 찾아서 deptno(PK)를 사용해서 삭제
+
+delete 
+from dept
+where deptno=(
+    select deptno
+    from dept
+    where dname='QC2'
+);
+
+2.  insa 테이블에서 남자는 'X', 여자는 'O' 로 성별(gender) 출력하는 쿼리 작성
+    1. REPLACE() 사용해서 풀기
+    select name,ssn
+    , replace(replace(mod(substr(ssn,-7,1),2),1,'X'),0,'O')gender
+    from insa;
+    
+    2. NVL2(), NULLIF() 사용해서 풀기.
+    select name,ssn
+    ,nvl2(nullif( mod(substr(ssn,-7,1),2),1),'O','X')gender
+    from insa;
+    
+    NAME                 SSN            GENDER
+    -------------------- -------------- ------
+    홍길동               771212-1022432    X
+    이순신               801007-1544236    X
+    이순애               770922-2312547    O
+    김정훈               790304-1788896    X
+    한석봉               811112-1566789    X 
+
+3.  insa 테이블에서 2000년 이후 입사자 정보 조회하는 쿼리 작성
+    1. TO_CHAR() 함수 사용해서 풀기
+    
+    select name,ibsadate
+    from insa
+    WHERE TO_CHAR(ibsadate, 'yyyy') >= '2000';
+
+    
+    2. EXTRACT() 함수 사용해서 풀기.
+    
+    select name, ibsadate
+    from insa
+    where extract(year from ibsadate) >= 2000;
+    
+    NAME                 IBSADATE
+    -------------------- --------
+    이미성               00/04/07
+    심심해               00/05/05
+    권영미               00/06/04
+    유관순               00/07/07    
+    
+4. 지금까지 배운 오라클 자료형을 적으세요.
+   ㄱ.  
+   ㄴ. 
+   ㄷ.  
+   ㄹ.  
+ 
+
+8.  insa 테이블에서  주민번호를 아래와 같이 '-' 문자를 제거해서 출력
+ 
+    NAME    SSN             SSN_2
+    홍길동   770423-1022432   7704231022432
+    이순신   800423-1544236   8004231544236
+    이순애   770922-2312547   7709222312547    
+    
+    1) SUBSTR() 사용
+    
+    select name, ssn,substr(ssn,0,6)||substr(ssn,8,7) as SSN_2
+    from insa;
+    
+    2) REPLACE() 사용
+    
+    select name,ssn
+    ,replace(ssn,'-','')
+    from insa;
+    
+    3) REGEXP_REPLACE() 사용
+
+    select 
+    name,
+    ssn,
+    regexp_replace(ssn, '[^0-9]', '') as SSN_2
+    from insa;
+
+[숫자함수]
+9. ROUND() 
+   1) 함수 설명 :  반올림
+   2) 형식 설명 :  round(a,b) 소수점 b번째 자리까지 남기고 반올림
+   3) 쿼리 설명
+        SELECT    3.141592
+               , ROUND(  3.141592 )       a 
+               , ROUND(  3.141592,  0 )   b
+               , ROUND(  3.141592,  2 )   c
+               , ROUND(  3.141592,  -1 ) d
+               , ROUND( 12345  , -3 )    e
+       FROM dual;
+        a는 기본적으로 소수점 첫째자리에서 반올림, 값은 3
+        b는 소수점 0번째자리 즉 첫재짜리에서 반올림, 값은 3
+        c는 소수점 둘째자리까지 남기고 반올림, 값은 3.14
+        d는 1의자리에서 반올림, 값은 3
+        e는 소수점 왼쪽 3번째 자리에서 반올림, 값은 12000
+
+    
+9-2. TRUNC()함수와 FLOOR() 함수에 대해서 설명하세요.  
+    둘다 절삭 함수
+    하지만
+    trunc는 절삭할 자릿수를 결정가능
+    floor는 무조건 소수점 첫째자리에서 절삭
+
+9-3. CEIL() 함수에 대해서 설명하세요.  
+     
+     절상함수
+     
+9-4. 나머지 값을 리턴하는 함수 :  (  mod    )
+9-5. 절대값을 리턴하는 함수 :   (    abs    ) 
+ 
+
+11. insa 테이블에서 모든 사원들을 14명씩 팀을 만드면 총 몇 팀이 나올지를 쿼리로 작성하세요.
+
+select count(*)
+from insa;
+
+select ceil(count(*)/14) 
+from insa;
+
+12. emp 테이블에서 최고 급여자, 최저 급여자 정보 모두 조회
+                                            PAY(sal+comm)
+7369   SMITH   CLERK   7902   80/12/17   800          20  최고급여자
+7839   KING   PRESIDENT      81/11/17   5000      10  최저급여자
+
+select empno, ename,job,mgr,hiredate,sal+nvl(comm,0) as pay ,deptno
+from emp
+where ?
+
+13. emp 테이블에서 
+   comm 이 400 이하인 사원의 정보 조회
+  ( comm 이 null 인 사원도 포함 )
+    
+    ENAME   SAL    COMM
+    SMITH   800   
+    ALLEN   1600   300
+    JONES   2975   
+    BLAKE   2850   
+    CLARK   2450   
+    KING   5000   
+    TURNER   1500   0
+    JAMES   950   
+    FORD   3000   
+    MILLER   1300   
+
+(이 문제는 생각만 풀 수 있으면 풀어보세요. )    
+14. emp 테이블에서 각 부서별 급여(pay)를 가장 많이 받는 사원의 정보 출력.    
+
+
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
