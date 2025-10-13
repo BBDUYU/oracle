@@ -1183,3 +1183,41 @@ select sysdate
 from dual;
 
 
+select to_char(sysdate,'ds ts')
+    ,to_char(trunc(sysdate),'ds ts')
+    ,to_char(trunc(sysdate,'dd'),'ds ts')--일 절삭
+    ,to_char(trunc(sysdate,'mm'),'ds ts')--월 절삭
+    ,to_char(trunc(sysdate,'yyyy'),'ds ts')--년도 절삭
+    ,trunc(sysdate)
+from dual;
+
+select '2025/08/18'
+    ,to_date('2025/08/18')+100
+from dual;
+
+select sysdate, sysdate+2,sysdate+2/24 
+from dual;
+
+select to_char(sysdate+1/2/24,'ds ts'),--30분후
+to_char(sysdate+1/24/60,'ds ts') --1분후
+from dual;
+
+
+select ename
+    ,sysdate
+    ,hiredate
+    --,날짜-날짜=두날짜사이의 간격
+    ,round(sysdate - hiredate) 근무일수
+    ,months_between(sysdate,hiredate)/12 근무년수
+from emp;
+
+
+select to_char(to_date('2025/08/18','yyyy/mm/dd')+100,'yyyy-mm-dd')
+from dual;
+
+select sysdate
+    ,add_months(sysdate,3)
+    ,add_months(sysdate,-3)
+from dual;
+
+
