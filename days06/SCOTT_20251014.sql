@@ -1656,8 +1656,98 @@ from dept d join emp e on d.deptno=e.deptno;
 select num,name,buseo
 from insa
 union
-select empno,ename,to_char(deptno)
+select empno,ename,dname
+from emp e,dept d
+where e.deptno=d.deptno;
+
+select *
 from emp;
+
+
+--문제 emp 테이블의 job의 갯수 출력
+
+
+select count(distinct(job))
+from emp;
+
+--문제 출력 결과
+10 2
+20 3
+30 6
+
+select '10',count(*)
+from emp
+where deptno=10
+union all
+select '20',count(*)
+from emp
+where deptno=20
+union all
+select '30',count(*)
+from emp
+where deptno=30
+union all
+select '40',count(*)
+from emp
+where deptno=40
+union all
+select ' ',count(*)
+from emp;
+
+--상관 서브쿼리사용
+select to_char(deptno) as deptno,
+    (select count(*) from emp where deptno=d.deptno)
+from dept d
+union all
+select ' ', count(*) from emp
+order by deptno asc;
+
+
+
+select *
+from dept;
+
+--group by 절 사용
+--각 부서별 사원수 파악
+
+select nvl(deptno,0)deptno,count(*) 사원수
+from emp
+group by deptno
+union all
+select null,count(*)
+from emp
+order by deptno asc;
+-- 조인
+--사원이 없는 부서정보는 출력하지않음 (40번부서)
+
+
+select nvl(d.deptno,0) deptno, count(ename)
+from emp e, dept d
+where e.deptno(+)=d.deptno -- pk == fk [outer join] 정보를 넣을테이블에 (+)
+group by d.deptno
+order by d.deptno asc;
+
+select *
+from dept;
+
+select nvl(d.deptno,0) deptno, count(ename) 
+from emp e right outer join dept d on e.deptno=d.deptno --모든 정보를 보일 테이블에  left || right outer 교집합 생각
+group by d.deptno
+order by d.deptno asc;
+
+--문제 insa 테이블에서 각 부서별 사원수를 출력
+
+select distinct buseo
+from insa;
+
+
+
+select buseo,replace(replace(mod(substr(ssn,-7,1),2),1,'남'),0,'여') 성별,count(*)
+from insa
+group by buseo,replace(replace(mod(substr(ssn,-7,1),2),1,'남'),0,'여')
+order by buseo asc;
+
+
 
 
 
