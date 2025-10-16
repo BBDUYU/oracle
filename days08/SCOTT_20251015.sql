@@ -3300,7 +3300,6 @@ select *
 from
 (
     select empno,ename,sal+nvl(comm,0) pay, deptno,
-     
             (
                 select count(*)+1
                 from emp s
@@ -3354,6 +3353,142 @@ having count(*)>=5;
 
 select *
 from insa;
+
+
+--emp 테이블에서 사원의 급여, 사원 전체 평균보다 급여가 많다/적다/같다 출력
+
+SELECT empno,ename,sal+NVL(comm,0) pay,(SELECT AVG(sal+NVL(comm,0))FROM emp) avg_pay,
+    CASE
+        WHEN sal+NVL(comm,0)>(
+            SELECT AVG(sal+NVL(comm,0))
+            FROM emp
+        )THEN '많다'
+        WHEN sal+NVL(comm,0)<(
+            SELECT AVG(sal+NVL(comm,0))
+            FROM emp
+        )THEN '적다'
+        ELSE '같다'
+        END 비교
+FROM emp;
+
+-- 풀이 - case
+SELECT empno,ename,pay-avg_pay,
+CASE
+        WHEN pay-avg_pay>0 THEN '많다'
+        WHEN pay-avg_pay<0 THEN '적다'
+        ELSE '같다'
+        end 급여평가
+
+FROM(
+SELECT empno,ename,sal+NVL(comm,0) pay,(SELECT AVG(sal+NVL(comm,0))FROM emp) avg_pay
+FROM emp
+);
+--풀이 - decode
+SELECT empno,ename,pay-avg_pay,
+    DECODE(SIGN(pay-avg_pay),-1,'적다',1,'많다','같다')평가
+FROM(
+SELECT empno,ename,sal+NVL(comm,0) pay,(SELECT AVG(sal+NVL(comm,0))FROM emp) avg_pay
+FROM emp
+);
+
+SELECT empno,ename,sal+NVL(comm,0) pay,(SELECT AVG(sal+NVL(comm,0))FROM emp) avg_pay,
+    CASE
+        WHEN sal+NVL(comm,0)>(SELECT AVG(sal+NVL(comm,0))FROM emp)THEN '많다'
+        WHEN sal+NVL(comm,0)<(SELECT AVG(sal+NVL(comm,0))FROM emp)THEN '적다'
+        ELSE '같다'
+        END 비교
+FROM emp;
+
+-- [문제] insa 테이블에서
+--   서울 출신 사원 중에 부서별 남자, 여자 사원수
+--                           남자급여총합, 여자 급여총합 조회(출력)
+-- [출력 형식]
+--BUSEO                남자인원수      여자인원수 남자급여합      여자급여합     
+----------------- ---------- ---------- ---------- ----------
+--개발부                   0          2             1,790,000
+--기획부                   2          1  5,060,000  1,900,000
+--영업부                   4          5  6,760,000  6,400,000
+--인사부                   1          0  2,300,000           
+--자재부                   0          1               960,400
+--총무부                   2          1  3,760,000    920,000
+--홍보부                   0          1               950,000
+
+
+SELECT buseo, 
+        COUNT( DECODE(  MOD( SUBSTR(ssn, -7,1), 2 ), 1 , 'O') ) "남자사원수",
+        COUNT( DECODE(  MOD( SUBSTR(ssn, -7,1), 2 ), 0 , 'O') ) "여자사원수",
+        NVL(TO_CHAR(SUM(DECODE(SUBSTR(ssn, 8, 1), '1', basicpay+sudang )), '9,999,999'),' ') AS 남자급여합,
+        NVL(TO_CHAR(SUM(DECODE(SUBSTR(ssn, 8, 1), '2', basicpay+sudang )), '9,999,999'),' ') AS 여자급여합
+FROM insa
+WHERE city='서울'
+GROUP BY buseo;
+
+
+--풀이
+WITH temp AS(
+    SELECT *
+    FROM insa
+    WHERE  city='서울'
+)
+SELECT 
+    DISTINCT t.buseo,
+    (SELECT COUNT(DECODE(MOD( SUBSTR(ssn, -7,1), 2 ), 1 , 'O')) FROM temp WHERE buseo = t.buseo) 남자사원수,
+    (SELECT COUNT(DECODE(MOD( SUBSTR(ssn, -7,1), 2 ), 0 , 'O')) FROM temp WHERE buseo = t.buseo) 여자사원수,
+    (SELECT SUM(DECODE(MOD( SUBSTR(ssn, -7,1), 2 ), 1 , basicpay+sudang)) FROM temp WHERE buseo = t.buseo) 남자급여합,
+    (SELECT SUM(DECODE(MOD( SUBSTR(ssn, -7,1), 2 ), 0 , basicpay+sudang)) FROM temp WHERE buseo = t.buseo) 여자급여합
+FROM temp t;
+    
+--풀이2
+SELECT buseo    
+    ,COUNT(DECODE(MOD( SUBSTR(ssn, -7,1), 2 ),1,'O')) 남자사원수
+    ,COUNT(DECODE(MOD( SUBSTR(ssn, -7,1), 2 ),1,'O')) 여자사원수
+    ,NVL(TO_CHAR(SUM(DECODE(MOD( SUBSTR(ssn, -7,1), 2 ),1,basicpay)),'9G999G999'),' ') 남자총급여합
+    ,NVL(TO_CHAR(SUM(DECODE(MOD( SUBSTR(ssn, -7,1), 2 ),0,basicpay)),'9G999G999'),' ') 여자총급여합
+
+FROM insa
+WHERE city='서울'
+GROUP BY buseo
+ORDER BY buseo;
+--풀이3
+SELECT buseo
+    ,DECODE(MOD( SUBSTR(ssn, -7,1), 2 ),1,'남자','여자') as gender
+    ,COUNT(*)
+    ,TO_CHAR(SUM(basicpay),'9G999G999')
+FROM insa
+WHERE city='서울'
+GROUP BY buseo,MOD( SUBSTR(ssn, -7,1), 2 )
+ORDER BY buseo,gender;
+
+--문제 emp테이블에서 급여 순위 TOP 5 사원의 정보 조회
+
+select *
+from
+(
+    select empno,ename,sal+nvl(comm,0) pay, deptno,
+            (
+                select count(*)+1
+                from emp s
+                where s.sal+nvl(s.comm,0) > m.sal+nvl(m.comm,0)
+             ) emp_pay_rank
+    from emp m
+    order by deptno
+)
+where emp_pay_rank<=5
+order by emp_pay_rank;
+
+--풀이2 - TOP-N 분석방법
+--인라인뷰 + ORDER BY
+SELECT t.*,ROWNUM
+FROM(
+    SELECT empno,ename,hiredate,sal+NVL(comm,0) pay
+    FROM emp
+    ORDER BY sal+NVL(comm,0) DESC
+) t
+WHERE ROWNUM <=5;
+
+
+
+
 
 
 
