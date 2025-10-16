@@ -3606,3 +3606,24 @@ WHERE 순위=1;
         RANK() OVER(PARTITION BY buseo ORDER BY COUNT(*) DESC)순위
     FROM insa
     WHERE MOD(SUBSTR(ssn,8,1),2)=0;
+    
+--insa 테이블에서 basicpay가 상위 10%에 해당하는 사원들의 이름, 기본급을 출력   
+    
+WITH total_count AS (
+SELECT COUNT(*) AS cnt FROM insa
+),
+ranked AS (
+    SELECT name, basicpay,
+           RANK() OVER (ORDER BY basicpay DESC) AS rnk
+    FROM insa
+)
+SELECT name, basicpay
+FROM ranked, total_count
+WHERE rnk <= cnt * 0.1;
+    
+    
+    
+    
+    
+    
+
