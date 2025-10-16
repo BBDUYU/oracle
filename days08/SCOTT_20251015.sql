@@ -3486,12 +3486,123 @@ FROM(
 ) t
 WHERE ROWNUM <=5;
 
+--만약에 
+SELECT *
+FROM(
+    SELECT t.*,ROWNUM r
+    FROM(
+        SELECT empno,ename,hiredate,sal+NVL(comm,0) pay
+        FROM emp
+        ORDER BY pay DESC
+) t
+)
+WHERE r BETWEEN 3 AND 5;
+
+--순위 rank
+--급여순으로 등수 매기기
+select empno, ename, sal+nvl(comm,0) pay
+        ,rank() over(order by sal+nvl(comm,0))as "RANK 함수 급여순위"
+        ,dense_rank() over(order by sal+nvl(comm,0))as "DENSE_RANK 함수 급여순위"
+from emp;
+
+select empno, ename, sal
+        ,rank() over(order by sal)as "RANK 함수 급여순위" -- 중복허용 O 순서유지 X 
+        ,dense_rank() over(order by sal)as "DENSE_RANK 함수 급여순위" -- 중복허용 O 순서유지 O
+        ,row_number() over(order by sal)as "ROW_NUMBER 함수 급여순위" -- 중복허용 X 순서유지 O
+from emp;
+--문제 emp테이블에서 각 부서별 급여많은 순위를 매겨서 출력
+
+select d.deptno,d.dname
+        ,nvl(sum(sal+nvl(comm,0)),0)dept_sum_pay
+        ,rank() over(order by nvl(sum(sal+nvl(e.comm,0)),0)desc) as "순위"
+from dept d
+full join emp e on d.deptno=e.deptno
+group by d.deptno,d.dname;
 
 
+select *
+from emp;
+
+select *
+from dept;
+
+--풀이 top-n
+select t.*,rownum
+from(
+    select nvl(deptno,0) deptno
+        ,sum(sal+nvl(comm,0))dept_sum_pay
+        from emp
+        group by deptno
+        order by dept_sum_pay desc
+) t;
+
+--풀이2 순위관련 함수 rank(), dense_rank(),row_number()
 
 
+    select nvl(deptno,0) deptno
+        ,sum(sal+nvl(comm,0))dept_sum_pay
+        ,rank() over(order by sum(sal+nvl(comm,0))desc)as "순위"
+        from emp
+        group by deptno;
 
+--풀이3 group by 절
+select deptno,ename
+        , sal+nvl(comm,0) pay
+from emp
+order by deptno asc, pay desc;
 
+SELECT *
+FROM(
+    SELECT deptno,ename
+            , sal+nvl(comm,0) pay
+--            , rank() over( partition by(deptno) order by sal+nvl(comm,0) desc )순위
+--            , rank() over( partition by deptno order by sal+nvl(comm,0) desc )순위
+            , rank() over( order by sal+nvl(comm,0) desc )순위
 
+    FROM emp
+)
+WHERE 순위 BETWEEN 2 AND 3;
+WHERE 순위<=2;
+WHERE 순위=1;
+--order by deptno asc, pay desc;
+---------------------------------
+--문제 INSA테이블에서 여자사원수가 가장많은 부서명, 여자사원수를 출력하는 쿼리
 
+SELECT buseo,여자사원수
+FROM(
+    SELECT buseo,
+        COUNT(CASE WHEN MOD(TO_NUMBER(SUBSTR(ssn, -7, 1)), 2) = 0 THEN 1 END) AS 여자사원수,
+        RANK() OVER(ORDER BY COUNT(CASE WHEN MOD(TO_NUMBER(SUBSTR(ssn, -7, 1)), 2) = 0 THEN 1 END)DESC)AS 순위
+    FROM insa
+    GROUP BY buseo
+)
+WHERE 순위=1;
 
+--풀이1
+WITH t AS(
+    SELECT buseo,COUNT(*) 여자사원수
+    FROM insa
+    WHERE MOD(SUBSTR(ssn,8,1),2)=0
+    GROUP BY buseo
+    ORDER BY 여자사원수 DESC
+)
+SELECT *
+FROM t
+WHERE 여자사원수 =(SELECT MAX(여자사원수)FROM t);
+
+--풀이2 순위 함수
+SELECT *
+FROM(
+    SELECT buseo,COUNT(*) 여자사원수,
+        RANK() OVER(ORDER BY COUNT(*) DESC)순위
+    FROM insa
+    WHERE MOD(SUBSTR(ssn,8,1),2)=0
+    GROUP BY buseo
+)
+WHERE 순위=1;
+--풀이3
+--ORA-00937: not a single-group group function
+    SELECT buseo,COUNT(*) 여자사원수,
+        RANK() OVER(PARTITION BY buseo ORDER BY COUNT(*) DESC)순위
+    FROM insa
+    WHERE MOD(SUBSTR(ssn,8,1),2)=0;
