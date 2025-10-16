@@ -3338,7 +3338,7 @@ order by buseo asc;
 
 select buseo,count(*) "CNT"
 from insa
-    group by buseo
+    group by buseo 
 having count(*)>=10
 order by buseo asc;
 
