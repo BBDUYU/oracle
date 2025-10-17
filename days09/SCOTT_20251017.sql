@@ -3743,7 +3743,7 @@ FROM insa;
 SELECT num,name,ssn
     ,TO_DATE(SUBSTR(ssn,3,4),'MMDD')
     ,TRUNC(SYSDATE,'DD') - TO_DATE(SUBSTR(ssn,3,4),'MMDD')a
-    ,DECODE(SIGN(TRUNC(SYSDATE) - TO_DATE(SUBSTR(ssn,3,4),'MMDD')),0,'오늘',1,'지남','안지남')b
+    ,DECODE(SIGN(TRUNC(SYSDATE) - TO_DATE(SUBSTR(ssn,3,4),'MMDD')),0,'오늘',1,'지남','안지남')
 FROM insa;
 
 --문제 insa 테이블에서 num,name,ssn,한국나이,만나이 도 출력
@@ -3779,14 +3779,341 @@ SELECT num, name, ssn,
 FROM insa;
 
 --풀이
-SELECT insa.*
-    ,TO_CHAR(SYSDATE,'YYYY') current_year
-    ,TO_CHAR(TO_DATE(SUBSTR(ssn,0,2),'RR'),'YYYY')birth_year 
+WITH t AS 
+(
+    SELECT insa.*
+        , TO_CHAR( SYSDATE, 'YYYY') current_year
+        -- RR과 YY의 차이점
+        -- , TO_CHAR( TO_DATE( SUBSTR( ssn, 0, 2), 'YY'), 'YYYY' ) birth_year
+        -- , TO_CHAR( TO_DATE( SUBSTR( ssn, 0, 2), 'RR'), 'YYYY' ) birth_year
+        --, SUBSTR(ssn, -7, 1) gender
+        --, SUBSTR(ssn, 0, 2)  ssn_year2
+        , SUBSTR(ssn, 0, 2) + CASE 
+                                WHEN SUBSTR(ssn, -7, 1) IN (1,2,5,6) THEN  1900
+                                WHEN REGEXP_LIKE( SUBSTR(ssn, -7, 1), '[3478]' ) THEN 2000
+                                ELSE 1800
+                              END birth_year
+        , SIGN( TRUNC(SYSDATE) - TO_DATE(  SUBSTR( ssn, 3, 4 ) , 'MMDD' ) ) birth_sign                      
+    FROM insa 
+)
+SELECT num, name, ssn
+   , current_year - birth_year + 1 korean_age
+   , current_year - birth_year +  DECODE( birth_sign,  -1, -1 , 0 ) international_age
+FROM t;
+
+
+SELECT DBMS_RANDOM.VALUE
+        ,DBMS_RANDOM.VALUE(1,46)
+        ,TRUNC(DBMS_RANDOM.VALUE(1,46))
+        ,TRUNC(DBMS_RANDOM.VALUE(0,101))
+FROM dual;
+
+--인증번호 : 6자리 숫자 -> 등록
+--임의의 인증번호 6자리를 발생시키는 쿼리작성
+
+SELECT TRUNC(DBMS_RANDOM.VALUE(100000,100000))
+FROM dual;
+
+SELECT 
+    DBMS_RANDOM.STRING('X', 10) --대문자+숫자
+    ,DBMS_RANDOM.STRING('U', 10)--대문자만
+    ,DBMS_RANDOM.STRING('L', 10)--소문자만
+    ,DBMS_RANDOM.STRING('P', 10)--대+소문자+숫자+특수문자
+    ,DBMS_RANDOM.STRING('A', 10)--대+소문자
+
+FROM dual;
+
+--insa 테이블에서 무작위로 5명의 사원을 조회
+SELECT *
+    FROM(
+            SELECT *
+            FROM insa
+            ORDER BY DBMS_RANDOM.VALUE
+        )
+WHERE ROWNUM <=5;
+
+--풀이
+-- LEVEL 의사 칼럼
+
+SELECT LEVEL,TRUNC(DBMS_RANDOM.VALUE(1001,1060+1))
+FROM dual
+CONNECT BY LEVEL <=5;
+
+
+SELECT *
+FROM insa
+WHERE num IN(
+    SELECT TRUNC(DBMS_RANDOM.VALUE(1001,1060+1))
+    FROM dual
+    CONNECT BY LEVEL <=5
+);
+
+SELECT t.*,ROWNUM
+FROM (
+    SELECT *
+    FROM insa
+    ORDER BY DBMS_RANDOM.VALUE)t
+WHERE ROWNUM<=5;
+
+LISTAGG(column_name,'구분자')
+    WITHIN GROUP(ORDER BY column_name);
+    
+SELECT deptno
+    ,COUNT(*)
+    ,LISTAGG(ename,', ')WITHIN GROUP(ORDER BY ename ASC) ename_list
+FROM emp
+GROUP BY deptno
+ORDER BY deptno ASC;
+--위의 쿼리의 결과를 확인하면 40번 부서도 함께 출력
+--outer join (left, right, full)
+SELECT d.deptno
+    ,COUNT(*)
+    ,LISTAGG(ename,', ')WITHIN GROUP(ORDER BY ename ASC) ename_list
+FROM emp e FULL OUTER JOIN dept d ON d.deptno=e.deptno
+GROUP BY d.deptno
+ORDER BY d.deptno ASC;
+
+
+-- [문제] JOB 별 사원수를 출력(조회)
+--     CLERK   SALESMAN  PRESIDENT    MANAGER    ANALYST
+------------ ---------- ---------- ---------- ----------
+--         3          4          1          3          1
+
+SELECT job
+    ,COUNT(*)
+FROM emp
+GROUP BY job;
+
+SELECT
+    COUNT(CASE WHEN job = 'CLERK' THEN 1 END) AS CLERK,
+    COUNT(CASE WHEN job = 'SALESMAN' THEN 1 END) AS SALESMAN,
+    COUNT(CASE WHEN job = 'PRESIDENT' THEN 1 END) AS PRESIDENT,
+    COUNT(CASE WHEN job = 'MANAGER' THEN 1 END) AS MANAGER,
+    COUNT(CASE WHEN job = 'ANALYST' THEN 1 END) AS ANALYST
+FROM emp;
+
+
+--pivot
+SELECT *
+FROM(
+    SELECT job
+    FROM emp
+)
+PIVOT(
+    COUNT(*)
+    FOR job IN ('CLERK', 'SALESMAN', 'PRESIDENT', 'MANAGER', 'ANALYST')
+);
+
+SELECT *
+FROM(
+    SELECT TO_CHAR(hiredate,'MM') 입사한월
+FROM emp
+)
+PIVOT(
+     COUNT(*)
+     FOR 입사한월 in('01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12')
+);
+
+
+
+-- [문제] 
+--    DEPTNO DNAME             'CLERK' 'SALESMAN' 'PRESIDENT'  'MANAGER'  'ANALYST'
+------------ -------------- ---------- ---------- ----------- ---------- ----------
+--        10 ACCOUNTING              1          0           1          1          0
+--        20 RESEARCH                1          0           0          1          1
+--        30 SALES                   1          4           0          1          0
+--        40 OPERATIONS              0          0           0          0          0 
+
+SELECT *
+FROM(
+    SELECT job
+    FROM emp
+)
+PIVOT(
+    COUNT(*)
+    FOR job IN ('CLERK', 'SALESMAN', 'PRESIDENT', 'MANAGER', 'ANALYST')
+);
+
+
+
+SELECT *
+FROM(
+    SELECT d.deptno,d.dname,e.job
+    FROM emp e
+    RIGHT JOIN dept d ON e.deptno=d.deptno
+)
+PIVOT(
+    COUNT(*)
+    FOR job IN ('CLERK', 'SALESMAN', 'PRESIDENT', 'MANAGER', 'ANALYST')
+)
+ORDER BY deptno;
+
+--풀이
+SELECT
+     d.deptno, dname 
+     , COUNT( DECODE( job , 'CLERK', 'O' ) ) "CLERK"
+     , COUNT( DECODE( job , 'SALESMAN', 'O' ) ) "SALESMAN"
+     , COUNT( DECODE( job , 'PRESIDENT', 'O' ) ) "PRESIDENT"
+     , COUNT( DECODE( job , 'MANAGER', 'O' ) ) "MANAGER"
+     , COUNT( DECODE( job , 'ANALYST', 'O' ) ) "ANALYST"
+FROM emp e FULL JOIN dept d ON d.deptno =  e.deptno
+GROUP BY d.deptno, dname 
+ORDER BY d.deptno ASC;
+
+
+
+SELECT *
+FROM(
+    SELECT deptno,job
+    FROM emp
+)
+PIVOT(
+    COUNT(*)
+    FOR job IN('CLERK', 'SALESMAN', 'PRESIDENT', 'MANAGER', 'ANALYST')
+)
+ORDER BY DEPTNO;
+
+--문제
+--생일 지난사람   오늘생일인사람  생일안지난사람
+--DECODE
+SELECT 
+       COUNT(DECODE(SIGN(TRUNC(SYSDATE) - TO_DATE(SUBSTR(ssn, 3, 4), 'MMDD')),1, 'Y', NULL)) AS 지남,
+       COUNT(DECODE(SIGN(TRUNC(SYSDATE) - TO_DATE(SUBSTR(ssn, 3, 4), 'MMDD')),0, 'Y', NULL)) AS 오늘,
+       COUNT(DECODE(SIGN(TRUNC(SYSDATE) - TO_DATE(SUBSTR(ssn, 3, 4), 'MMDD')),-1, 'Y', NULL)) AS 안지남
 FROM insa;
 
+--풀이
+WITH t AS(
+    SELECT insa.*
+        ,SIGN(TO_CHAR(SYSDATE,'MMDD')-SUBSTR(ssn,3,4))birth_sign
+        FROM insa
+)
+--가로출력
+SELECT
+    COUNT(DECODE(birth_sign,-1,'O'))"지나지 않음"
+    ,COUNT(DECODE(birth_sign,0,'O'))"오늘"
+    ,COUNT(DECODE(birth_sign,1,'O'))"지남"
+FROM t;
 
 
+--세로출력
+--SELECT birth_sign,COUNT(*)
+--FROM t
+--GROUP BY birth_sign;
 
+
+--PIVOT
+SELECT * 
+FROM (
+    SELECT
+        CASE
+            WHEN SUBSTR(SSN, 3, 4) < TO_CHAR(SYSDATE, 'MMDD') THEN '지남'
+            WHEN SUBSTR(SSN, 3, 4) = TO_CHAR(SYSDATE, 'MMDD') THEN '오늘'
+            ELSE '안지남'
+        END AS 생일
+    FROM INSA
+)
+PIVOT (
+    COUNT(*) FOR 생일 IN ('지남' , '오늘' , '안지남')
+);
+
+--풀이
+SELECT *
+FROM (
+     -- PIVOT 대상이 되는 SELECT문
+     SELECT 
+          --insa.*
+           buseo
+          , SIGN( TO_CHAR( SYSDATE, 'MMDD' ) - SUBSTR( ssn, 3,4) ) birth_sign
+     FROM insa
+)
+PIVOT(
+   COUNT(*)
+   FOR birth_sign IN ( -1 AS "생일X", 0 AS "오늘", 1 AS "생일O" )
+)
+ORDER BY buseo ASC;
+
+--문제
+SELECT *
+FROM(
+    SELECT deptno,sal+NVL(comm,0) pay
+    FROM emp
+)
+PIVOT(
+    SUM(pay)
+    FOR deptno IN(10,20,30,40,null)
+);
+
+--문제
+SELECT *
+FROM(
+    SELECT deptno,sal+nvl(comm,0) pay
+    FROM emp
+)
+PIVOT(
+    SUM(pay) as 총급여
+    ,MAX(pay) as 최고액
+    ,MIN(pay) as 최저액
+    ,COUNT(pay) as 사원수
+    FOR deptno IN (10,20,30,40,NULL)
+);
+
+
+--문제 학생 성적(국,영,수)저장하는 테이블
+DDL(CREATE,ALTER, DROP)
+DROP TABLE tlb_pivot PURGE;
+
+CREATE TABLE tbl_pivot(
+    -- 컬럼명    자료형
+      no         NUMBER                PRIMARY KEY
+    , name       VARCHAR2(20)          NOT NULL -- 필수 입력 
+    , jumsu      NUMBER(3)
+);
+INSERT INTO TBL_PIVOT ( no, name, jumsu ) VALUES ( 1, '박예린', 90 );  -- kor
+INSERT INTO TBL_PIVOT ( no, name, jumsu ) VALUES ( 2, '박예린', 89 );  -- eng
+INSERT INTO TBL_PIVOT ( no, name, jumsu ) VALUES ( 3, '박예린', 99 );  -- mat
+ INSERT INTO TBL_PIVOT ( no, name, jumsu ) VALUES ( 4, '안시은', 56 );  -- kor
+INSERT INTO TBL_PIVOT ( no, name, jumsu ) VALUES ( 5, '안시은', 45 );  -- eng
+INSERT INTO TBL_PIVOT ( no, name, jumsu ) VALUES ( 6, '안시은', 12 );  -- mat 
+ 
+INSERT INTO TBL_PIVOT ( no, name, jumsu ) VALUES ( 7, '김민', 99 );  -- kor
+INSERT INTO TBL_PIVOT ( no, name, jumsu ) VALUES ( 8, '김민', 85 );  -- eng
+INSERT INTO TBL_PIVOT ( no, name, jumsu ) VALUES ( 9, '김민', 100 );  -- mat 
+
+COMMIT; 
+--
+SELECT * 
+FROM tbl_pivot;
+
+--번호 이름 국 영 수
+--1 박예린 90 89 99
+--2 안시은 56 45 12
+--3 김민  99 85 100
+
+SELECT ROW_NUMBER() OVER (ORDER BY name) AS 번호,
+  name,
+  국,
+  영,
+  수
+FROM (
+  SELECT name,
+         CASE
+           WHEN MOD(no, 3) = 1 THEN 'kor'
+           WHEN MOD(no, 3) = 2 THEN 'eng'
+           WHEN MOD(no, 3) = 0 THEN 'math'
+         END AS 과목,
+         jumsu
+  FROM tbl_pivot
+)
+
+PIVOT (
+  MAX(jumsu) FOR 과목 IN (
+    'kor' AS 국,
+    'eng' AS 영,
+    'math' AS 수
+  )
+)
+ORDER BY name;
 
 
 
