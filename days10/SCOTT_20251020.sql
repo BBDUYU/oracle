@@ -4544,7 +4544,47 @@ ORDER BY sal ASC;
 
 
 
+--예제
+   CREATE TABLE tbl_number
+    (
+       name VARCHAR2(10)
+       , kor NUMBER(3)
+       , eng NUMBER(3)
+       , mat NUMBER(3)
+       , tot NUMBER(3)
+       , avg NUMBER(5,2)
+    );
+ --
+ SELECT * FROM tbl_number;
+ ROLLBACK;
+ --
+ INSERT INTO tbl_number VALUES ( '홍길동', 23.22, 199.88, 23, null, null);
+ INSERT INTO tbl_number VALUES ( '홍길님', 98, 54, 76, null, null);
+ INSERT INTO tbl_number VALUES ( '서주원', 67, 99, 199, null, null);
+ COMMIT;
 
+UPDATE tbl_number
+SET eng=100
+WHERE name='홍길동';
 
+UPDATE tbl_number
+SET mat=99
+WHERE name='서주원';
 
-
+ UPDATE tbl_number
+ SET  kor= CASE 
+             WHEN kor NOT BETWEEN 0 AND 100 THEN null
+             ELSE kor
+         END
+     , eng= CASE 
+             WHEN eng  NOT BETWEEN 0 AND 100 THEN null
+             ELSE eng
+         END
+     ,mat= CASE 
+             WHEN mat  NOT BETWEEN 0 AND 100 THEN null
+             ELSE mat
+         END 
+ -- WHERE
+UPDATE  tbl_number
+SET  tot= NVL(kor,0) + NVL(eng,0) + NVL(mat , 0)
+    , avg= ( NVL(kor,0) + NVL(eng,0) + NVL(mat , 0) )/3
