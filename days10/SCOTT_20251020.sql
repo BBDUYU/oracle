@@ -4483,7 +4483,61 @@ FROM dept d
 LEFT JOIN emp e ON d.deptno = e.deptno
 WHERE e.empno IS NULL;
 
+--예 emp 테이블 급여 기준으로 상중하 출력
 
+SELECT deptno,ename,sal
+    ,DECODE(NTILE(3) OVER(ORDER BY sal ASC),1,'하',2,'중','상') ntiles
+    ,NTILE(2) OVER(PARTITION BY deptno ORDER BY sal ASC)
+FROM emp
+ORDER BY deptno;
+
+--너비 버킷 - 어떤값이 어느구간에 속하는지 반환하는 함수
+--WIDTH_BUCKET() 함수
+--WIDTH_BUCKET(expr,min_value,max_value,num_buckets)
+
+SELECT ename,sal
+    ,WIDTH_BUCKET(sal,0,4000,4) bucket
+FROM emp;
+
+--예
+
+SELECT ename,TRUNC(sal/100+50)score
+    ,DECODE(TRUNC(TRUNC(sal/100+50)/10),10,'수',9,'수',8,'우',7,'미',6,'양','가')grade
+    ,CASE
+        WHEN TRUNC(sal/100+50) BETWEEN 90 AND 100 THEN '수'
+        WHEN TRUNC(sal/100+50) BETWEEN 80 AND 89 THEN '우'
+        WHEN TRUNC(sal/100+50) BETWEEN 70 AND 79 THEN '미'
+        WHEN TRUNC(sal/100+50) BETWEEN 60 AND 69 THEN '양'
+        ELSE '가'
+    END grade
+
+FROM emp;
+
+--LAG(),LEAD()
+SELECT ename,sal
+    ,LAG(sal)OVER(ORDER BY sal ASC) a
+    ,LAG(sal,3)OVER(ORDER BY sal ASC) b
+    ,LEAD(sal,3,-1)OVER(ORDER BY sal ASC) c
+FROM emp
+ORDER BY sal ASC;
+
+--오라클 자료형 정리
+-- [오라클 자료형 ( Data Type) 정리 ]
+1) CHAR[(size[BYTE ¦ CHAR])]  고정길이의 문자 데이터, 최대 크기 2KB  
+2) VARCHAR2[(size[BYTE ¦ CHAR])] 가변길이의 문자 데이터, 최대 크기 4KB인  
+3) NCHAR[(size)] 여러 언어에 의해서 결정되며, CHAR형과 같다.  
+4) NVARCHAR2(size)  여러 언어에 의해서 결정되며,   varchar2 형과 같다.  
+5) LONG  최대 2GB까지의 가변길이 문자데이터 
+6) RAW(size)  최대 2GB까지의 바이트 문자열 데이터 
+7) LONG RAW  최대 2GB까지의 이진 문자열 데이터 
+8) NUMBER[(l,d)] 수치 데이터로 전체길이 'l'이고 소수점 자릿수 'd' 예로 number(6,2)=xxxx.xx 
+9) BLOB  최대 길이 4GB까지의 구조화되지 않은 이진 데이터  
+10) CLOB  최대 길이 4GB까지의 구조화되지 않은 문자 데이터 
+11) NCLOB  최대 길이 4GB까지의 여러 언어의 문자 데이터 
+12) DATE  날짜, 시간 데이터(BC 4712.1.1∼CE 4712.12.31범위)  
+13) TIMESTAMP[(n)] 소숫점 9자리까지의 정밀도를 가진 날짜 정보  
+14) BFILE  최대 4GB까지의 이진 파일, DB 외부에 파일로 저장 
+15) ROWID  테이블에 행이 저장될 때 ROWID 타입을 이용해서 저장 
 
 
 
