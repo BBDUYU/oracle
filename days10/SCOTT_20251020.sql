@@ -4420,14 +4420,68 @@ SELECT MAX(sal)
 FROM emp;
 
 
+SELECT MAX(ename) KEEP(DENSE_RANK FIRST ORDER BY sal DESC) ename, MAX(sal)
+,MIN(ename) KEEP(DENSE_RANK LAST ORDER BY sal DESC) ename, MIN(sal)
+FROM emp;
+
 -- [문제] emp 테이블에서 각 부서별 최고sal, empno , 최저sal  , empno 조회
 
+SELECT 
+  deptno,
+  MAX(empno) KEEP (DENSE_RANK FIRST ORDER BY sal DESC) AS max_sal_empno,
+  MAX(sal)  AS max_sal,
+  MAX(empno) KEEP (DENSE_RANK LAST ORDER BY sal DESC)  AS min_sal_empno,
+  MIN(sal)  AS min_sal
+FROM emp
+GROUP BY deptno;
+
+--1
+SELECT ename,sal
+    ,COUNT(*) OVER(ORDER BY sal ASC) --누적된 수를 반환하는 쿼리
+    ,SUM(sal) OVER(ORDER BY sal ASC) --누적된 합을 반환하는 쿼리
+    ,AVG(sal) OVER(ORDER BY sal ASC) --누적된 평균을 반환하는 쿼리
+FROM emp;
 
 
+--문제 EMP테이블에서 사원이 존재하지 않는 부서번호와 부서명을 출력
+SELECT *
+FROM emp;
+
+SELECT *
+FROM DEPT;
+
+SELECT d.deptno, d.dname
+FROM emp e RIGHT JOIN dept d ON d.deptno = e.deptno
+WHERE e.empno IS NULL;
+
+SELECT t.deptno,d.dname
+FROM(
+    SELECT deptno
+    FROM dept
+    MINUS
+    SELECT DISTINCT deptno
+    FROM emp
+)t JOIN dept d ON t.deptno=d.deptno;
+
+--풀이2 NOT EXISTS
+
+SELECT d.deptno, d.dname
+FROM dept d
+WHERE NOT EXISTS(
+    SELECT 1 FROM emp e WHERE e.deptno = d.deptno
+);
+--각 부서별 사원수 집계 + 집계된 사원수가 0인 부서번호와 부서명 출력
+SELECT d.deptno,dname
+--    ,COUNT(empno)
+FROM emp e RIGHT JOIN dept d ON d.deptno=e.deptno
+GROUP BY d.deptno,dname
+HAVING COUNT(empno)=0; --GROUP BY의 조건절
 
 
-
-
+SELECT d.deptno, d.dname
+FROM dept d
+LEFT JOIN emp e ON d.deptno = e.deptno
+WHERE e.empno IS NULL;
 
 
 
