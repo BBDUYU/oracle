@@ -4789,13 +4789,226 @@ AS
 DESC tbl_emp;
 SELECT *
 FROM tbl_emp;
-DROP TABLE tbl_emp
+DROP TABLE tbl_emp;
+
+--DML(INSERT, UPDATE, DELETE)
+
+SELECT *
+FROM emp;
+
+DESC emp;
+
+INSERT INTO emp
+VALUES(9999);
+
+DELETE FROM dept
+WHERE deptno=50;
+
+rollback;
+
+INSERT INTO dept
+VALUES(50,'QC','SEOUL');
+
+INSERT INTO emp (empno)
+VALUES(9999);
+
+INSERT INTO emp (empno,hiredate)
+VALUES(9999,TO_DATE('01/22/88','MM/DD/YY'));
+
+--update
+--사원번호 9999번인 사원명을 admin으로수정, 입사일자를 오늘날짜로 수정
+UPDATE emp
+SET ename = UPPER('admin'),hiredate=SYSDATE
+WHERE empno=9999;
+
+--9999 사원의 job,mgr을 7369번의 job, mgr값으로 수정
+UPDATE emp 
+SET (job, mgr) = (
+  SELECT job, mgr
+  FROM emp
+  WHERE empno = 7369
+)
+WHERE empno = 9999;
+
+--다중 insert
+SELECT *
+FROM tbl_emp;
+
+-->emp테이블의 30번 부서원 6명을 --> tbl_emp테이블에 insert
+SELECT *
+FROM tbl_emp;
 
 
+INSERT INTO tbl_emp(
+    SELECT *
+    FROM emp
+    WHERE deptno=30
+);
+rollback;
+
+INSERT INTO tbl_emp(empno,ename)(
+    SELECT empno,ename
+    FROM emp
+    WHERE deptno=30
+);
 
 
+tbl_emp10,tbl_emp20,tbl_emp30,tbl_emp40
 
 
+CREATE TABLE tbl_emp10
+AS
+    SELECT *
+    FROM emp
+    WHERE 1=0;
+
+DROP TABLE tbl_emp20
+DROP TABLE tbl_emp30;
 
 
+SELECT * FROM tbl_emp10;
+SELECT * FROM tbl_emp20;
+SELECT * FROM tbl_emp30;
+SELECT * FROM tbl_emp40;
 
+--조건이 없는 insert
+--unconditional insert all  
+
+
+【형식】
+	INSERT ALL | FIRST
+	  [INTO 테이블1 VALUES (컬럼1,컬럼2,...)]
+	  [INTO 테이블2 VALUES (컬럼1,컬럼2,...)]
+	  .......
+	Subquery;
+
+INSERT ALL
+    INTO tbl_emp10 VALUES(empno,ename,job,mgr,hiredate,sal,comm,deptno)
+    INTO tbl_emp20 VALUES(empno,ename,job,mgr,hiredate,sal,comm,deptno)
+    INTO tbl_emp30 VALUES(empno,ename,job,mgr,hiredate,sal,comm,deptno)
+    INTO tbl_emp40 (empno,ename,job) VALUES(empno,ename,job);
+
+rollback;
+
+DELETE FROM emp
+WHERE empno=9999;
+
+--조건이 있는 insert
+--conditional insert all 
+【형식】
+	INSERT ALL
+	WHEN 조건절1 THEN
+	  INTO [테이블1] VALUES (컬럼1,컬럼2,...)
+	WHEN 조건절2 THEN
+	  INTO [테이블2] VALUES (컬럼1,컬럼2,...)
+	........
+	ELSE
+	  INTO [테이블3] VALUES (컬럼1,컬럼2,...)
+	Subquery;
+    
+	INSERT ALL
+	WHEN deptno=10 THEN
+        INTO tbl_emp10 VALUES(empno,ename,job,mgr,hiredate,sal,comm,deptno)
+	WHEN deptno=20 THEN
+        INTO tbl_emp20 VALUES(empno,ename,job,mgr,hiredate,sal,comm,deptno)
+	WHEN deptno=30 THEN
+        INTO tbl_emp30 VALUES(empno,ename,job,mgr,hiredate,sal,comm,deptno)
+	ELSE
+        INTO tbl_emp40 VALUES(empno,ename,job,mgr,hiredate,sal,comm,deptno);
+        
+    select *
+    from emp;
+--conditional first insert 
+INSERT FIRST
+	WHEN deptno=10 THEN
+        INTO tbl_emp10 VALUES(empno,ename,job,mgr,hiredate,sal,comm,deptno)
+	WHEN sal>=1500 THEN
+        INTO tbl_emp20 VALUES(empno,ename,job,mgr,hiredate,sal,comm,deptno)
+	WHEN deptno=30 THEN
+        INTO tbl_emp30 VALUES(empno,ename,job,mgr,hiredate,sal,comm,deptno)
+	WHEN deptno=40 THEN
+        INTO tbl_emp40 VALUES(empno,ename,job,mgr,hiredate,sal,comm,deptno)
+    select *
+    from emp;
+    
+    
+--pivoting insert 
+INSERT ALL
+WHEN 조건절1 THEN
+  INTO [테이블1] VALUES (컬럼1,컬럼2,...)
+  INTO [테이블1] VALUES (컬럼1,컬럼2,...)
+  ..........
+Sub-Query;
+
+create table tbl_sales(
+employee_id        number(6),       -- 사원번호
+week_id            number(2),       -- 2자리 정수
+sales_mon          number(8,2),     
+sales_tue          number(8,2),
+sales_wed          number(8,2),
+sales_thu          number(8,2),
+sales_fri          number(8,2));
+
+INSERT INTO tbl_sales VALUES(1101,4,100,150,80,60,120);
+INSERT INTO tbl_sales VALUES(1102,5,300,300,230,120,150);
+
+commit;
+
+SELECT *
+FROM tbl_sales;
+
+create table tbl_sales_data(
+employee_id        number(6),
+week_id            number(2),
+sales              number(8,2));
+
+INSERT ALL
+    INTO tbl_sales_data VALUES(employee_id,week_id,sales_mon)
+    INTO tbl_sales_data VALUES(employee_id,week_id,sales_tue)
+    INTO tbl_sales_data VALUES(employee_id,week_id,sales_wed)
+    INTO tbl_sales_data VALUES(employee_id,week_id,sales_thu)
+    INTO tbl_sales_data VALUES(employee_id,week_id,sales_fri)
+select *
+from tbl_sales;
+        
+select *
+from tbl_sales_data;
+
+drop table tbl_emp10 purge;
+drop table tbl_emp20 purge;
+drop table tbl_emp30 purge;
+drop table tbl_emp40 purge;
+drop table tbl_sales_data purge;
+drop table tbl_sales purge;        
+        
+
+--테이블 삭제
+DROP TABLE 테이블명 PURGE;
+--모든 레코드를 삭제(WHERE 조건절이 없어서)
+DELETE FROM 테이블명 + COMMIT, ROLLBACK;
+--모든레코드를 삭제
+TRUNCATE TABLE 테이블명 + COMMIT, ROLLBACK ;할 수 없음
+        
+--1 tbl_score 테이블 존재 확인
+SELECT *
+FROM TABS
+WHERE REGEXP_LIKE(table_name,'tbl_score','i');
+--2 tbl_score 테이블 삭제
+DROP TABLE tbl_core PURGE;
+--3 tbl_score 테이블 생성
+    --1)CREATE TABLE DDL
+    --2)서브쿼리를 사용해서 테이블 생성
+        --insa 테이블에서 사원번호 <= 1005의 num,name컬럼만 복사해서
+        --tbl_score 테이블을 생성
+
+CREATE TABLE tbl_score
+AS
+    SELECT num,name
+    FROM insa
+    WHERE num<=1005;
+--4 num컬럼을 pk로 설정
+
+ALTER TABLE tbl_score
+ADD CONSTRAINT pk_tbl_score_num PRIMARY KEY(num);
+
+        
