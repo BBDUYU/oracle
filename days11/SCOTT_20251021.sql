@@ -5089,4 +5089,19 @@ from tbl_score;
 
 commit;
 --merge 병합 : 한쪽테이블의 정보를 다른쪽 테이블에 추가/수정
+--문제 등급컬럼처리
+--평균 90~100 수, 80~89 우, 미양가
+SELECT *
+FROM tbl_score;
+
+UPDATE tbl_score
+SET GRADE=CASE 
+            WHEN avg BETWEEN 90 AND 100 THEN '수'
+            WHEN avg BETWEEN 80 AND 89 THEN '우'
+            WHEN avg BETWEEN 70 AND 79 THEN '미'
+            WHEN avg BETWEEN 60 AND 69 THEN '양'
+            ELSE '가'
+        END;
+
+
 
