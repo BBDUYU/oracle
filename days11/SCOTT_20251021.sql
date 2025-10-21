@@ -5088,4 +5088,5 @@ select *
 from tbl_score;
 
 commit;
+--merge 병합 : 한쪽테이블의 정보를 다른쪽 테이블에 추가/수정
 
