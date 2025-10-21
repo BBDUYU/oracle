@@ -4634,7 +4634,162 @@ RENAME COLUMN bigo TO memo;
 --테이블명 변경
 RENAME tbl_sample TO tbl_example;
 
+DESC tbl_cstVSBoard;
 
+
+
+DROP TABLE tbl_cstVSBoard PURGE;
+
+CREATE TABLE tbl_cstVSBoard (
+  seq NUMBER NOT NULL PRIMARY KEY,
+  writer VARCHAR2(20) NOT NULL,
+  pwd VARCHAR2(20) NOT NULL,
+  email VARCHAR2(100),
+  title VARCHAR2(200) NOT NULL,
+  writedate DATE DEFAULT (SYSDATE),
+  readed NUMBER DEFAULT 0 ,
+  tag NUMBER NOT NULL,
+  content CLOB
+);
+--CRUD
+
+INSERT INTO TBL_CSTVSBOARD
+(seq, writer, pwd, email, title, writedate, readed, tag, content)
+VALUES
+(1, '홍길동', '1234', 'hong@naver.com', '첫 번째 게시글', SYSDATE, 0, 0, '첫 번째 게시글 내용'); 
+
+
+--ORA-00001: unique constraint (SCOTT.SYS_C007067) violated
+INSERT INTO TBL_CSTVSBOARD
+(seq, writer, pwd, email, title, writedate, readed, tag, content)
+VALUES
+(2, '서영학', '1234', 'seo@naver.com', '두 번째 게시글', SYSDATE, 0, 0, '두 번째 게시글 내용'); 
+--기본키 
+INSERT INTO TBL_CSTVSBOARD
+(seq, writer, pwd, email, title, tag, content)
+VALUES
+(3, '정창기', '1234', 'jung@naver.com', '세 번째 게시글', 0, '세 번째 게시글 내용'); 
+
+INSERT INTO TBL_CSTVSBOARD
+(seq, writer, pwd, email, title, tag, content)
+VALUES
+(seq_TBL_CSTVSBOARD.NEXTVAL, '관', '1234', 'jung@naver.com', '네 번째 게시글', 0, '세 번째 게시글 내용');
+
+
+--형식
+CREATE SEQUENCE seq_TBL_CSTVSBOARD
+   [ INCREMENT BY 정수]
+   [ START WITH 정수]
+   [ MAXVALUE n ¦ NOMAXVALUE]
+   [ MINVALUE n ¦ NOMINVALUE]
+   [ CYCLE ¦ NOCYCLE]
+   [ CACHE n ¦ NOCACHE];
+   
+CREATE SEQUENCE seq_TBL_CSTVSBOARD
+START WITH 4
+NOCACHE;
+--시퀀스 삭제
+DROP SEQUENCE seq_TBL_CSTVSBOARD;
+
+SELECT *
+--FROM user_sequences;
+FROM tabs;
+FROM user_tables;
+
+SELECT SEQ_TBL_CSTVSBOARD.CURRVAL
+FROM dual;
+
+
+SELECT *
+FROM TBL_CSTVSBOARD
+ORDER BY seq DESC;
+
+ALTER TABLE TBL_CSTVSBOARD
+RENAME COLUMN title TO subject;
+
+
+--테이블 생성
+
+CREATE TABLE tbl_emp30(no,name,hdate,dno)
+AS
+(
+    SELECT empno,ename,hiredate,deptno
+    FROM emp
+    WHERE deptno=30
+);
+
+SELECT *
+FROM tabs;
+--제약조건 확인
+SELECT *
+FROM USER_CONSTRAINTS
+--WHERE REGEXP_LIKE(table_name,'^tbl_e','i');
+WHERE TABLE_NAME='TBL_EMP30';
+
+CREATE TABLE tbl_emp20
+AS
+(
+    SELECT empno,ename,hiredate,deptno
+    FROM emp
+    WHERE deptno=20
+);
+
+--서브쿼리를 사용해서 테이블을 생성했을 때 제약조건
+--tbl_emp30 테이블의 제약조건 x -> PK 제약조건 추가
+
+ALTER TABLE     ADD/MODIFY/DROP
+ALTER TABLE     ADD 문 사용
+
+【형식】constraint추가
+   ALTER TABLE 테이블명
+   ADD (컬럼명 datatype CONSTRAINT constraint명 constraint실제값
+       [,컬럼명 datatype]...);
+
+ALTER TABLE tbl_emp30
+--ADD (no NUMBER(4) CONSTRAINT PK_TBL_EMP30_NO);
+ADD CONSTRAINT PK_TBL_EMP30_NO PRIMARY KEY(no);
+
+--ALTER TABLE tbl_emp20
+--ADD CONSTRAINT PRIMARY KEY(empno);
+
+desc tbl_emp20;
+
+--tbl_emp30 테이블에 존재하는 제약조건을 확인한후에 pk제약조건 제거
+SELECT *
+FROM USER_CONSTRAINTS
+WHERE table_name = 'TBL_EMP30';
+
+【형식】
+        ALTER TABLE 테이블명
+        DROP [CONSTRAINT] constraint명; 
+
+ALTER TABLE TBL_EMP30
+DROP PRIMARY KEY;
+
+--dept 테이블의 pk제약조건을 확인하고 삭제
+SELECT *
+FROM USER_CONSTRAINTS
+WHERE table_name = 'DEPT';
+
+ALTER TABLE DEPT
+DROP PRIMARY KEY;
+
+--tbl_emp30,tbl_emp20 테이블 삭제
+DROP TABLE tbl_emp30 PURGE;
+DROP TABLE tbl_emp20 PURGE;
+
+--서브쿼리를 사용해서 테이블 생성 + 결과 (데이터)추가
+CREATE TABLE tbl_emp
+AS
+    SELECT *
+    FROM emp
+    WHERE 1=0;
+
+--
+DESC tbl_emp;
+SELECT *
+FROM tbl_emp;
+DROP TABLE tbl_emp
 
 
 
