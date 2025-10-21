@@ -5010,5 +5010,82 @@ AS
 
 ALTER TABLE tbl_score
 ADD CONSTRAINT pk_tbl_score_num PRIMARY KEY(num);
+--5 제약 조건 확인
+SELECT *
+FROM user_constraints
+WHERE table_name='TBL_SCORE';
+--6) kor,eng,mat,tot,avg,grade,rank 컬럼 추가
+--   kor,eng,mat,tot 3자리 정수 기본값 0
+--   avg                p 5, s 2 실수 기본값 0
+--   grade CHAR(1 CHAR)
+--   rank            3자리 정수
 
-        
+ALTER TABLE TBL_SCORE
+ADD (
+    kor   NUMBER(3) DEFAULT 0,
+    eng   NUMBER(3) DEFAULT 0,
+    mat   NUMBER(3) DEFAULT 0,
+    tot   NUMBER(3) ,
+    avg   NUMBER(5,2) ,
+    grade CHAR(1 CHAR),
+    rank  NUMBER(3)
+);     
+
+--7 1001~1005 5명의 학생이 있는데
+--KOR,ENG,MAT 모두0점
+--오라클 임의의 수를 발생시키는 쿼리
+
+UPDATE tbl_score
+SET kor=ROUND(DBMS_RANDOM.VALUE * 100)
+    ,eng=ROUND(DBMS_RANDOM.VALUE * 100)
+    ,mat=ROUND(DBMS_RANDOM.VALUE * 100);
+
+select *
+from tbl_score;
+commit;
+
+
+SELECT ROUND(DBMS_RANDOM.VALUE * 100)
+    , TRUNC(DBMS_RANDOM.VALUE * 101)
+    , FLOOR(DBMS_RANDOM.VALUE * 101)
+    , DBMS_RANDOM.VALUE(0,101)
+FROM dual;
+
+
+--8 1005번 학생의 국,영,수 점수가 1001학생의 국-1,영-1
+UPDATE tbl_score
+SET (kor,eng)=(
+    SELECT kor-1,eng-1
+    FROM tbl_score
+    WHERE num=1001
+)
+WHERE num=1005;
+
+--9 모든 학생 수학점수 + 5 업데이트 (100점 초과가 안되게끔)
+UPDATE tbl_score    
+SET mat = CASE 
+            WHEN mat + 5 > 100 THEN 100
+            ELSE mat + 5
+          END;
+--SET mat=least(mat+5,100);
+
+--10 모든 학생들 총점, 평균
+UPDATE tbl_score
+SET tot=kor+eng+mat
+    ,avg=(kor+eng+mat)/3;
+--11 rank 등수
+UPDATE tbl_score t
+SET rank = (
+    SELECT rnk FROM (
+        SELECT num,
+               RANK() OVER (ORDER BY tot DESC) AS rnk
+        FROM tbl_score
+    ) s
+    WHERE s.num = t.num
+);
+
+select *
+from tbl_score;
+
+commit;
+
