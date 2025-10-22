@@ -5105,3 +5105,176 @@ SET GRADE=CASE
 
 
 
+-- ■ [문제1] tbl_score 테이블에서 grade( 등급 ) 처리
+--    avg 90 이상 '수', 80 이상 '우'  ~ '가'
+UPDATE tbl_score
+SET GRADE=CASE 
+            WHEN avg BETWEEN 90 AND 100 THEN '수'
+            WHEN avg BETWEEN 80 AND 89 THEN '우'
+            WHEN avg BETWEEN 70 AND 79 THEN '미'
+            WHEN avg BETWEEN 60 AND 69 THEN '양'
+            ELSE '가'
+        END;
+
+
+-- ■ [문제2] tbl_score 테이블에서 남학생들만 국어점수 10 감소. ( UPDATE )
+--       (문제점) tbl_score 테이블에는 성별을 구분할 수 있는 컬럼 X
+--               insa 테이블의 ssn 가지고 성별 파악해서 UPDATE  완성...
+UPDATE tbl_score t
+SET kor=kor-10
+WHERE EXISTS (
+    SELECT 1
+    FROM insa i
+    WHERE t.num=i.num 
+        AND REGEXP_LIKE( SUBSTR(i.ssn, 8, 1), '[1379]' )
+);
+    
+    --풀이
+UPDATE tbl_score
+SET kor = CASE
+            WHEN kor - 10 < 0 THEN 0
+            ELSE kor - 10
+          END
+WHERE num IN (
+                SELECT num
+                FROM insa
+                WHERE MOD(SUBSTR(ssn, -7, 1), 2) = 1 AND num <= 1005
+              );
+    
+select *
+from insa;
+
+select *
+from tbl_score;
+
+-- ■ [문제3] result  컬럼 추가 ( '합격', '불합격', '과락')
+--   합격 : 평균 60점 이상, 40 미만 X
+--  불합격 : 평균 60점 미만
+--   과락 : 40 미만 
+ALTER TABLE tbl_score
+ADD result VARCHAR2(10);
+
+UPDATE tbl_score
+SET result = 
+    CASE 
+        WHEN kor < 40 OR eng < 40 OR mat < 40 THEN '과락'
+        WHEN (kor + eng + mat)/3 < 60 THEN '불합격'
+        ELSE '합격'
+    END;
+
+--merge
+--구조가 같은 두개의 테이블을 하나의 테이블로 합치는 
+
+
+drop table tbl_emp purge;
+
+CREATE TABLE tbl_emp
+(
+    id  NUMBER PRIMARY KEY
+    ,name   VARCHAR2(10) NOT NULL
+    , salary    NUMBER
+    , bonus     NUMBER DEFAULT 100
+);
+
+INSERT INTO tbl_emp(id,name,salary) VALUES (1001,'jijoe',150);
+INSERT INTO tbl_emp(id,name,salary) VALUES(1002,'cho',130);
+INSERT INTO tbl_emp(id,name,salary) VALUES(1003,'kim',140);
+COMMIT;
+Select * 
+from tbl_emp;
+
+
+
+CREATE TABLE tbl_bonus
+(
+    ID NUMBER
+    ,bonus NUMBER DEFAULT 100
+);
+
+INSERT INTO tbl_bonus(id) (SELECT e.id FROM tbl_emp e);
+
+SELECT *
+FROM tbl_bonus;
+
+INSERT INTO tbl_bonus VALUES(1004,50);
+COMMIT;
+
+【형식】
+    MERGE [hint] INTO [schema.] {table ¦ view} [t_alias]
+      USING {{[schema.] {table ¦ view}} ¦
+            subquery} [t_alias]
+      ON (condition) [merge_update_clause] [merge_insert_clause] [error_logging_clause];
+
+【merge_update_clause 형식】
+   WHEN MATCHED THEN UPDATE SET {column = {expr ¦ DEFAULT},...}
+     [where_clause] [DELETE where_clause]
+
+【merge_insert_clause 형식】
+   WHEN MATCHED THEN INSERT [(column,...)]
+    VALUES ({expr,... ¦ DEFAULT}) [where_clause]
+   
+【where_clause 형식】
+   WHERE condition
+
+【error_logging_clause 형식】
+   LOG ERROR [INTO [schema.] table] [(simple_expression)]
+     [REJECT LIMIT {integer ¦ UNLIMITED}]
+
+MERGE INTO tbl_bonus b
+USING (SELECT id,salary FROM tbl_emp) e
+ON ( b.id=e.id )
+WHEN MATCHED THEN
+    UPDATE SET b.bonus=b.bonus+e.salary*0.01
+WHEN NOT MATCHED THEN
+    INSERT(b.id,b.bonus)VALUES(e.id,e.salary*0.01);
+    
+SELECT *
+FROM tbl_bonus;
+
+--문제 위아래 MERGE
+SELECT num,tot,RANK()OVER(ORDER BY tot DESC) r
+FROM tbl_score;
+
+--
+UPDATE tbl_score
+SET rank=null;
+COMMIT;
+
+--제약조건 CONSTRAINTS
+--정의 : 데이터의 무결성을 위해 테이블에 데이터 추가/수정/삭제할 때 규칙
+
+--제약조건 선언
+--1) CREATE TABLE
+--  ㄱ IN-LINE 제약조건 생성
+        --테이블 생성시 컬럼뒤에 바로코딩
+--  ㄴ OUT-OF-LINE 제약조건 생성
+        --테이블 생성시 컬럼을 모두 선언한 뒤에 콤마 제약조건을 나열
+--2) ALTER TABLE 테이블 수정
+--   테이블 생성 후 따로 PK제약조건을 선언
+
+
+-- 제약조건 5가지
+1) PRIMARY KEY (PK) == UK + NN
+2) FOREIGN KEY (FK)
+    부모          자식
+    dept         emp
+    deptno       empno(PK)..deptno(FK)
+    10                          
+    20
+    30
+    40
+3) UNIQUE KEY  (UK)
+4) NOT NULL    (NN)
+5) CHECK       (CK)
+
+
+
+
+
+
+
+
+
+
+
+
