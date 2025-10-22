@@ -5656,8 +5656,38 @@ FROM panmai;
 --panmai : id(PK), g_id(FK), b_id(FK ), p_date, p_su
 --문제 책ID, 책 제목, 출판사, 책단가 출력
 
-SELECT b_id,title,g_id,price
-FROM book
+1) JOIN ON 구문
+SELECT b.b_id,b.title,b.c_name,d.price
+FROM book b JOIN danga d ON b.b_id=d.b_id;
+
+2) 
+SELECT b.b_id,b.title,b.c_name,d.price
+FROM book b , danga d 
+WHERE b.b_id=d.b_id;
+
+3)  USING
+SELECT b_id,title,c_name,price
+FROM book JOIN danga USING (b_id);
+
+4) NATURAL JOIN
+SELECT b_id,title,c_name,price
+FROM book NATURAL JOIN danga ;
+
+
+-- [문제] *책id, *제목, 판매수량, *단가, 서점명(g_name), 판매금액( p_su * price) 출력.
+--        book   book    panmai  danga    book     <- table      
+
+--1 JOIN ON
+SELECT b.b_id, title, p_su, price, g_name, p_su * price
+FROM book b 
+    JOIN danga d ON b.b_id = d.b_id 
+    JOIN panmai p ON d.b_id = p.b_id
+    JOIN gogaek g ON g.g_id = p.g_id;
+
+--2 
+SELECT b.b_id, title, p_su, price, g_name, p_su * price
+FROM book b , danga d,panmai p,gogaek g 
+WHERE b.b_id = d.b_id AND d.b_id = p.b_id AND g.g_id = p.g_id;
 
 
 
