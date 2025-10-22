@@ -5264,13 +5264,132 @@ COMMIT;
     30
     40
 3) UNIQUE KEY  (UK)
+                ㄴ 휴대폰, 이메일, 학번, 주민번호
 4) NOT NULL    (NN)
+                ㄴ 필수입력
 5) CHECK       (CK)
+    kor NUMBER(3) CK 0<=kor<=100
+
+--emp 테이블에 제약조건 조회
+SELECT *
+FROM user_constraints
+WHERE table_name = 'EMP';
+-- 제약조건 5가지
+--tbl_constraints 테이블 존재유무확인
+CREATE TABLE tbl_constraints
+(
+    empno NUMBER(4)
+    ,ename VARCHAR2(20)
+    ,deptno NUMBER(2)
+    ,kor NUMBER(3)
+    ,email VARCHAR2(250)
+    ,city VARCHAR2(20)
+);
 
 
+INSERT INTO tbl_constraints (empno,ename,deptno) VALUES(1111,'홍길동',60);
+INSERT INTO tbl_constraints (empno,ename) VALUES(2222,'홍길동');
+INSERT INTO tbl_constraints (empno,ename) VALUES(3333,'홍길동');
+commit;
+
+SELECT *
+FROM tbl_constraints;
+
+UPDATE tbl_constraints
+SET ename='서영학'
+WHERE empno=1111;
+
+DELETE FROM tbl_constraints
+WHERE ename='서영학';
+
+--모든 테이블은 pk설정
+DROP TABLE tbl_constraints PURGE;
+
+CREATE TABLE tbl_constraints
+(
+    empno NUMBER(4) NOT NULL CONSTRAINT PK_tbl_constraints_empno PRIMARY KEY
+    ,ename VARCHAR2(20) NOT NULL 
+    ,deptno NUMBER(2) CONSTRAINT FK_tbl_constraints_deptno
+                        REFERENCES dept(deptno)
+    ,kor NUMBER(3) CONSTRAINT CK_tbl_constraints_kor
+                    CHECK (kor BETWEEN 0 AND 100)
+    ,email VARCHAR2(250) CONSTRAINT UK_tbl_constraints_email UNIQUE
+    ,city VARCHAR2(20) CONSTRAINT CK_tbl_constraints_city
+                        CHECK(city IN('서울','충남','인천','경기'))
+);
+
+INSERT INTO tbl_constraints(empno,kor,ename) VALUES(5555,999,'홍씨');
+INSERT INTO tbl_constraints(empno,email,ename) VALUES(5555,'hong@naver.com','홍씨');
+INSERT INTO tbl_constraints(empno,email,ename) VALUES(6666,'hong@naver.com','홍기수');
+
+commit;
+
+--PK 제약조건명을 선언하지않으면 오라클 서버가 자동으로 SYS_C숫자 
+SELECT *
+FROM user_constraints
+WHERE table_name = 'TBL_CONSTRAINTS';
+
+--컬럼 레벨 방식으로 제약조건 설정한 예
+CREATE TABLE tbl_constraints
+(
+    empno NUMBER(4) NOT NULL
+    ,ename VARCHAR2(20) NOT NULL 
+    ,deptno NUMBER(2) 
+    ,kor NUMBER(3) 
+    ,email VARCHAR2(250) 
+    ,city VARCHAR2(20) 
+    ,  CONSTRAINT PK_tbl_constraints_empno PRIMARY KEY (empno)
+    , CONSTRAINT FK_tbl_constraints_deptno 
+                FOREIGN KEY(deptno) REFERENCES dept(deptno)
+    , CONSTRAINT CK_tbl_constraints_kor CHECK (kor BETWEEN 0 AND 100)
+    , CONSTRAINT UK_tbl_constraints_email UNIQUE (email)
+    , CONSTRAINT CK_tbl_constraints_city CHECK(city IN('서울','충남','인천','경기'))
+    
+);
+--pk 2개 이상의 칼럼 == 복합키
+--예)
+사원번호        지급일     지급액
+7369        2025/08/25  4,000,000
+7369        2025/09/25  4,000,000
+7369        2025/10/25  4,000,000
 
 
+--제약조건 삭제
+ALTER TABLE TBL_CONSTRAINTS
+DROP PRIMARY KEY ;
 
+ALTER TABLE TBL_CONSTRAINTS
+DROP CONSTRAINT  CK_tbl_constraints_kor ;
+
+ALTER TABLE TBL_CONSTRAINTS
+DROP CONSTRAINT FK_tbl_constraints_deptno ;
+
+SELECT *
+FROM user_constraints
+WHERE table_name = 'TBL_CONSTRAINTS';
+
+ALTER TABLE TBL_CONSTRAINTS
+DROP CONSTRAINT UK_tbl_constraints_email;
+
+ALTER TABLE TBL_CONSTRAINTS
+ADD(
+      CONSTRAINT PK_tbl_constraints_empno PRIMARY KEY (empno)
+    , CONSTRAINT FK_tbl_constraints_deptno 
+                FOREIGN KEY(deptno) REFERENCES dept(deptno)
+    , CONSTRAINT CK_tbl_constraints_kor CHECK (kor BETWEEN 0 AND 100)
+    , CONSTRAINT UK_tbl_constraints_email UNIQUE (email)
+    , CONSTRAINT CK_tbl_constraints_city CHECK(city IN('서울','충남','인천','경기'))
+);
+
+-- 제약조건 CK city 비활성화../ 활성화
+ALTER TABLE TBL_CONSTRAINTS
+    DISABLE CONSTRAINT CK_tbl_constraints_city [CASCADE];
+    
+ALTER TABLE TBL_CONSTRAINTS
+    ENABLE CONSTRAINT CK_tbl_constraints_city [CASCADE];
+    
+--FK 설정할때
+-- ON DELETE CASCADE | ON DELETE SET NULL 옵션의 의미
 
 
 
