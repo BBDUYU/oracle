@@ -7,19 +7,19 @@ from tabs;
 
 
 SELECT * FROM SCOTT.EMP;
-
+     
 CREATE USER madang IDENTIFIED BY madang;
 
---DCL ¹®
---CONNECT, RESOURCE ·Ñ==¿ªÇÒ
---UNLIMITED TABLESPACE ±ÇÇÑ
+--DCL ï¿½ï¿½
+--CONNECT, RESOURCE ï¿½ï¿½==ï¿½ï¿½ï¿½ï¿½
+--UNLIMITED TABLESPACE ï¿½ï¿½ï¿½ï¿½
 GRANT CONNECT, RESOURCE,UNLIMITED TABLESPACE TO madang;
 
 SELECT * FROM dba_users;
 
 SELECT * FROM all_users;
 
-SELECT * FROM user_users; --ÇöÀç ·Î±×ÀÎµÈ »ç¿ëÀÚ
+SELECT * FROM user_users; --ï¿½ï¿½ï¿½ï¿½ ï¿½Î±ï¿½ï¿½Îµï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½
 
 ALTER USER HR IDENTIFIED BY HR ACCOUNT UNLOCK;
 
@@ -29,13 +29,13 @@ ALTER USER MADANG QUOTA UNLIMITED ON USERS;
 
 SELECT *
 FROM all_tables
---ÀÚ¹Ù °°´Ù == , ¿À¶óÅ¬ °°´Ù = 
---WHERE table_name='employees' °Ë»ö°á°ú ¾øÀ½
+--ï¿½Ú¹ï¿½ ï¿½ï¿½ï¿½ï¿½ == , ï¿½ï¿½ï¿½ï¿½Å¬ ï¿½ï¿½ï¿½ï¿½ = 
+--WHERE table_name='employees' ï¿½Ë»ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½
 
 ALTER USER hr IDENTIFIED BY lion ;
 
 
---¿¹¾à¾î Á¶È¸ -> È®ÀÎ
+--ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½È¸ -> È®ï¿½ï¿½
 
 select *
 from v$reserved_words
@@ -43,13 +43,13 @@ where keyword = upper('date');
 
 
 select *
-from user_tables; -- view = ?ÀÇ ¸ñ·ÏÀ» °¡Áö°íÀÖ´Â ¿À¶óÅ¬ °´Ã¼
+from user_tables; -- view = ?ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö´ï¿½ ï¿½ï¿½ï¿½ï¿½Å¬ ï¿½ï¿½Ã¼
 from tabs;
 
 select *
 from scott.emp;
 
---dept,emp ¼ÒÀ¯ÀÚ È®ÀÎ
+--dept,emp ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 select owner,table_name
 from dba_tables
 where owner='SCOTT';
@@ -58,11 +58,11 @@ where owner='SCOTT';
 CREATE PUBLIC SYNONYM arirang
 FOR scott.emp;
 
---»èÁ¦
+--ï¿½ï¿½ï¿½ï¿½
 drop public synonym arirang;
 
---SYNONYM ARIRANGÀÌ(°¡) »ý¼ºµÇ¾ú½À´Ï´Ù.
---½Ã³ë´ÔÀÌ »ý¼º - Äõ¸® È®ÀÎ
+--SYNONYM ARIRANGï¿½ï¿½(ï¿½ï¿½) ï¿½ï¿½ï¿½ï¿½ï¿½Ç¾ï¿½ï¿½ï¿½ï¿½Ï´ï¿½.
+--ï¿½Ã³ï¿½ï¿½ï¿½ï¿½ ï¿½ï¿½ï¿½ï¿½ - ï¿½ï¿½ï¿½ï¿½ È®ï¿½ï¿½
 
 select *
 from all_synonyms
@@ -76,19 +76,19 @@ FOR HR.EMPLOYEES;
 
 drop public synonym employees;
 
-GRANT SELECT ON HR.EMPLOYEES TO SCOTT;  -- ±ÇÇÑ ºÎ¿©
-REVOKE SELECT ON HR.EMPLOYEES TO SCOTT; -- ±ÇÇÑ È¸¼ö
+GRANT SELECT ON HR.EMPLOYEES TO SCOTT;  -- ï¿½ï¿½ï¿½ï¿½ ï¿½Î¿ï¿½
+REVOKE SELECT ON HR.EMPLOYEES TO SCOTT; -- ï¿½ï¿½ï¿½ï¿½ È¸ï¿½ï¿½
 
 
 
 SELECT 
-       NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 1, TO_CHAR( dates, 'DD')) ), ' ')  ÀÏ
-     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 2, TO_CHAR( dates, 'DD')) ), ' ')  ¿ù
+       NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 1, TO_CHAR( dates, 'DD')) ), ' ')  ï¿½ï¿½
+     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 2, TO_CHAR( dates, 'DD')) ), ' ')  ï¿½ï¿½
      , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 3, TO_CHAR( dates, 'DD')) ), ' ')  È­
-     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 4, TO_CHAR( dates, 'DD')) ), ' ')  ¼ö
-     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 5, TO_CHAR( dates, 'DD')) ), ' ')  ¸ñ
-     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 6, TO_CHAR( dates, 'DD')) ), ' ')  ±Ý
-     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 7, TO_CHAR( dates, 'DD')) ), ' ')  Åä
+     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 4, TO_CHAR( dates, 'DD')) ), ' ')  ï¿½ï¿½
+     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 5, TO_CHAR( dates, 'DD')) ), ' ')  ï¿½ï¿½
+     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 6, TO_CHAR( dates, 'DD')) ), ' ')  ï¿½ï¿½
+     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 7, TO_CHAR( dates, 'DD')) ), ' ')  ï¿½ï¿½
 FROM (
         SELECT TO_DATE(:yyyymm , 'YYYYMM') + LEVEL - 1  dates
         FROM dual
