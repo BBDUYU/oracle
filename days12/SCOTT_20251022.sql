@@ -5690,6 +5690,148 @@ FROM book b , danga d,panmai p,gogaek g
 WHERE b.b_id = d.b_id AND d.b_id = p.b_id AND g.g_id = p.g_id;
 
 
+-- [문제1] 출판된 책들이 각각 총 몇권이 판매되었는지 조회  
+--  (    책ID, 책제목, 총판매권수, 단가 컬럼 출력   )
+
+SELECT b.b_id,title,SUM(p_su),price
+FROM book b 
+    JOIN panmai p ON b.b_id = p.b_id
+    JOIN danga d ON b.b_id=d.b_id
+    GROUP BY b.b_id,title,price;
+
+
+-- [문제2] 가장 많이 팔린 책 정보를 조회...
+-- ( 책ID, 제목, 단가, 총판매권수 )
+
+SELECT b.b_id,title,SUM(p_su),price
+FROM book b 
+    JOIN panmai p ON b.b_id = p.b_id
+    JOIN danga d ON b.b_id=d.b_id
+    GROUP BY b.b_id,title,price
+    HAVING SUM(p_su)=(
+        SELECT MAX(s)
+        FROM(
+            SELECT SUM(p2.p_su) s
+            FROM panmai p2
+            GROUP BY p2.b_id
+        ) 
+    );
+--풀이
+-- 1) TOP-N     방식
+SELECT t.*, ROWNUM
+FROM ( 
+    SELECT b.b_id, title, SUM (p_su ) t_psu, price
+    FROM book b JOIN panmai p ON b.b_id = p.b_id
+                JOIN danga  d ON b.b_id = d.b_id
+    GROUP BY    b.b_id, title, price 
+    ORDER BY    t_psu DESC
+) t
+WHERE ROWNUM = 1; 
+
+-- 2) 순위함수
+SELECT * 
+FROM ( 
+    SELECT b.b_id, title, SUM (p_su ) t_psu, price
+       , RANK() OVER( ORDEr BY SUM (p_su )  DESC ) tpsu_rank
+    FROM book b JOIN panmai p ON b.b_id = p.b_id
+                JOIN danga  d ON b.b_id = d.b_id
+    GROUP BY    b.b_id, title, price 
+)
+WHERe tpsu_rank <= 3;
+
+-- [문제3] book 테이블에서 한 번도 판매가 된 적이 없는 책의 정보 조회...
+-- ( 책id, 제목, 단가 )
+
+SELECT b.b_id,title,price
+FROM book b
+    JOIN danga d ON b.b_id = d.b_id
+    JOIN panmai p ON p.b_id=b.b_id
+WHERE
+    p_su=0;
+    
+
+
+
+-- [문제4] book 테이블에서 한 번이라도 판매가 된 적이 있는 책의 정보 조회...
+-- ( 책id, 제목, 단가 )    
+
+SELECT b.b_id,title,price
+FROM book b
+    JOIN danga d ON b.b_id = d.b_id
+    JOIN panmai p ON p.b_id=b.b_id
+WHERE
+    p_su>0; 
+
+
+-- [문제5] 년도, 월별 판매 현황 구하기
+--    년도   월     판매금액( p_su * price )
+--    ---- -- ----------
+--  2000   03   6000
+--  2000   07   1600
+--  2000   10   10500
+--  2024   08   41661
+
+SELECT TO_CHAR(p_date,'YYYY')as 년도 ,TO_CHAR(p_date,'MM')as 월,(p_su*price) as 판매금액
+FROM panmai p
+    JOIN danga d ON p.b_id=d.b_id;
+
+-- [문제6] 25년도에 가장 판매가 많은 책 정보 조회 ( id, 제목, 책 수량 )
+--         올해에 
+
+SELECT b.b_id,title,SUM(p_su)
+FROM book b 
+    JOIN panmai p ON b.b_id = p.b_id
+    JOIN danga d ON b.b_id=d.b_id
+    WHERE TO_CHAR(p.p_date,'YYYY')= TO_CHAR(sysdate,'YYYY')
+    GROUP BY b.b_id,title
+    HAVING SUM(p_su)=(
+        SELECT MAX(s)
+        FROM(
+            SELECT SUM(p2.p_su) s
+            FROM panmai p2
+            WHERE TO_CHAR(p2.p_date,'YYYY')= TO_CHAR(sysdate,'YYYY')
+            GROUP BY p2.b_id
+        ) 
+    );
+
+--
+-- 1) TOP-N     방식
+SELECT t.*, ROWNUM
+FROM ( 
+    SELECT b.b_id, title, SUM (p_su ) t_psu, price
+    FROM book b JOIN panmai p ON b.b_id = p.b_id
+                JOIN danga  d ON b.b_id = d.b_id
+    WHERE TO_CHAR(p.p_date,'YYYY')= TO_CHAR(sysdate,'YYYY')
+    GROUP BY    b.b_id, title, price 
+    ORDER BY    t_psu DESC
+) t
+WHERE ROWNUM = 1 ; 
+
+-- 2) 순위함수
+SELECT * 
+FROM ( 
+    SELECT b.b_id, title, SUM (p_su ) t_psu, price
+       , RANK() OVER( ORDEr BY SUM (p_su )  DESC ) tpsu_rank
+    FROM book b JOIN panmai p ON b.b_id = p.b_id
+                JOIN danga  d ON b.b_id = d.b_id
+    WHERE TO_CHAR(p.p_date,'YYYY')= TO_CHAR(sysdate,'YYYY')
+
+    GROUP BY    b.b_id, title, price 
+)
+WHERE tpsu_rank <= 3;
+
+
+-- [문제7] 서점별 판매현황 구하기
+--서점코드  서점명  판매금액합  비율(소수점 둘째반올림)  
+-- g_id    g_name
+------------ -------------------------- ----------------
+--7       강북서점    15300      26%
+--4       서울서점    11551      19%
+--2       도시서점    6000      10%
+--6       강남서점    18060      30%
+--1       우리서점    8850      15%
+
+
 
 
 
