@@ -5390,8 +5390,274 @@ ALTER TABLE TBL_CONSTRAINTS
     
 --FK 설정할때
 -- ON DELETE CASCADE | ON DELETE SET NULL 옵션의 의미
+1) emp -> tbl_emp 테이블 생성 + 데이터 복사
+DROP TABLE tbl_emp PURGE;
+
+CREATE TABLE tbl_emp
+    AS( SELECT * FROM emp ); 
+
+2) 
+DROP TABLE tbl_dept PURGE;
+
+CREATE TABLE tbl_dept
+    AS( SELECT * FROM dept ); 
+
+3)
+SELECT * FROM tbl_emp;
+SELECT * FROM tbl_dept;
+
+4) NN 제약조건외의 제약조건은 복사되지 않는다. 제약조건 확인
+SELECT *
+FROM user_constraints
+WHERE table_name IN ('TBL_DEPT','TBL_EMP');
+
+5) tbl_dept 테이블에 deptno 컬럼에 pk제약조건 추가
+    -- 테이블 생성할 때 컬럼레벨,테이블레벨 방식으로 제약조건 추가
+    -- ALTER TABLE ADD 문으로 제약 조건을 추가
+ALTER TABLE tbl_dept
+ADD(
+      CONSTRAINT PK_tbl_constraints_deptno PRIMARY KEY (deptno)   
+    );
+
+6) tbl_emp 테이블에 제약조건 2개 추가
+    ㄱ. empno  pk
+    ㄴ. deptno fk + ON DELETE CASCADE
+
+ALTER TABLE tbl_emp
+ADD(
+       CONSTRAINT PK_tbl_emp_empno PRIMARY KEY (empno)
+      ,CONSTRAINT FK_tbl_emp_deptno FOREIGN KEY(deptno)
+            REFERENCES tbl_dept(deptno) ON DELETE CASCADE
+    );
+
+--ON DELETE CASCADE
+--ORA-02292: integrity constraint (SCOTT.FK_DEPTNO) violated - child record found
+--무결성 제약조건
+DELETE FROM tbl_dept
+WHERE deptno=10;
+--dept(deptno PK)   emp(deptno FK)
+      10        참조      10/10
+
+SELECT * FROM tbl_dept;
+SELECT * FROM tbl_emp;
+SELECT * FROM tbl_emp WHERE deptno=30;
+
+--ON DELETE SET NULL의미 
+1) tbl_emp 테이블에 있는 FK 제약조건을 삭제
+SELECT *
+FROM user_constraints
+WHERE table_name IN('TBL_EMP');
+
+ALTER TABLE tbl_emp
+DROP CONSTRAINT FK_tbl_emp_deptno;
+------
+ALTER TABLE tbl_emp
+ADD(
+      CONSTRAINT FK_tbl_emp_deptno FOREIGN KEY(deptno)
+            REFERENCES tbl_dept(deptno) ON DELETE SET NULL
+    );
+
+--tbl_dept 30 삭제
+--tbl_emp 30번 부서원이 6명 있는데 같이 삭제 ON DELETE CASCADE
+DELETE FROM tbl_dept
+WHERE deptno=30;
+
+SELECT * FROM tbl_emp;
+COMMIT;
+
+-- JOIN
+--부서번호, 부서명, 사원명, 입사일자 컬럼 출력 emp,dept
+--emp : [deptno], ename, hiredate
+--dept : [deptno], dname
+
+1)
+SELECT dept.deptno, dname, ename, hiredate
+FROM dept,emp
+WHERE dept.deptno = emp.deptno; -- 조인조건
+
+2)
+SELECT d.deptno, dname, ename, hiredate
+FROM dept d ,emp e
+WHERE d.deptno = e.deptno; -- 조인조건
+
+3) JOIN ~ ON 구문 수정
+SELECT d.deptno, dname, ename, hiredate
+FROM dept d JOIN emp e ON d.deptno = e.deptno; -- 조인조건
+
+4) USING 사용
+-- (주의) 객체명.컬럼명 또는 별칭명.컬럼명으로 사용하지 않음
+SELECT deptno, dname, ename, hiredate
+FROM dept JOIN emp USING(deptno);
+
+5) NATURAL JOIN 구문 - 객체명을 사용하지 않음
+SELECT deptno, dname, ename, hiredate
+FROM dept NATURAL JOIN emp;
+
+--NON-EQUI JOIN
+--emp 테이블의 sal을 가지고 salgrade 급여등급테이블에서 grade(1,2,3,4,5)조회
+
+SELECT *
+FROM emp;
+
+SELECT *
+FROM salgrade;
+
+SELECT empno,ename,sal,losal || '~'||hisal,grade
+FROM emp e JOIN salgrade s ON e.sal BETWEEN s.losal AND s.hisal;
+
+--INNER JOIN 조인 조건을 만족하는 행만 가져온다
+SELECT * FROM emp;
+
+SELECT e.*,d.*
+FROM emp e FULL OUTER JOIN dept d ON d.deptno=e.deptno;
+FROM emp e LEFT OUTER JOIN dept d ON d.deptno=e.deptno;
+
+--SELF JOIN
+--A 테이블 + A 테이블
+--예) 사원번호, 사원명, 직속상사의 사원번호 출력
 
 
+SELECT a.empno, a.ename,a.mgr,b.ename
+FROM emp a JOIN emp b ON a.mgr=b.empno;
+
+--CROSS JOIN 데카르트 곱
+SELECT emp.*
+FROM emp,dept;
+
+--ANTIJOIN
+
+--SEMIJOIN
+
+
+
+--조인 예제
+--1 책테이블
+CREATE TABLE book( 
+       b_id     VARCHAR2(10)    NOT NULL PRIMARY KEY   -- 책ID
+      ,title      VARCHAR2(100) NOT NULL  -- 책 제목
+      ,c_name  VARCHAR2(100)    NOT NULL     -- c 이름
+     -- ,  price  NUMBER(7) NOT NULL
+ );
+INSERT INTO book (b_id, title, c_name) VALUES ('a-1', '데이터베이스', '서울');
+INSERT INTO book (b_id, title, c_name) VALUES ('a-2', '데이터베이스', '경기');
+INSERT INTO book (b_id, title, c_name) VALUES ('b-1', '운영체제', '부산');
+INSERT INTO book (b_id, title, c_name) VALUES ('b-2', '운영체제', '인천');
+INSERT INTO book (b_id, title, c_name) VALUES ('c-1', '워드', '경기');
+INSERT INTO book (b_id, title, c_name) VALUES ('d-1', '엑셀', '대구');
+INSERT INTO book (b_id, title, c_name) VALUES ('e-1', '파워포인트', '부산');
+INSERT INTO book (b_id, title, c_name) VALUES ('f-1', '엑세스', '인천');
+INSERT INTO book (b_id, title, c_name) VALUES ('f-2', '엑세스', '서울');
+
+COMMIT;
+
+SELECT *
+FROM book;
+
+--2 단가 테이블
+  CREATE TABLE danga(
+      b_id  VARCHAR2(10)  NOT NULL  -- PK , FK
+      ,price  NUMBER(7) NOT NULL    -- 책 가격
+      
+      ,CONSTRAINT PK_danga_id PRIMARY KEY(b_id)
+      ,CONSTRAINT FK_danga_id FOREIGN KEY (b_id)
+              REFERENCES book(b_id)
+              ON DELETE CASCADE
+);
+
+INSERT INTO danga (b_id, price) VALUES ('a-1', 300);
+INSERT INTO danga (b_id, price) VALUES ('a-2', 500);
+INSERT INTO danga (b_id, price) VALUES ('b-1', 450);
+INSERT INTO danga (b_id, price) VALUES ('b-2', 440);
+INSERT INTO danga (b_id, price) VALUES ('c-1', 320);
+INSERT INTO danga (b_id, price) VALUES ('d-1', 321);
+INSERT INTO danga (b_id, price) VALUES ('e-1', 250);
+INSERT INTO danga (b_id, price) VALUES ('f-1', 510);
+INSERT INTO danga (b_id, price) VALUES ('f-2', 400);
+
+COMMIT;
+
+--3 저자 테이블
+CREATE TABLE au_book(
+       id   number(5)  NOT NULL PRIMARY KEY
+      ,b_id VARCHAR2(10)  NOT NULL  CONSTRAINT FK_AUBOOK_BID
+            REFERENCES book(b_id) -- ON DELETE CASCADE
+      ,name VARCHAR2(20)  NOT NULL
+);
+INSERT INTO au_book (id, b_id, name) VALUES (1, 'a-1', '저팔개');
+INSERT INTO au_book (id, b_id, name) VALUES (2, 'b-1', '손오공');
+INSERT INTO au_book (id, b_id, name) VALUES (3, 'a-1', '사오정');
+INSERT INTO au_book (id, b_id, name) VALUES (4, 'b-1', '김유신');
+INSERT INTO au_book (id, b_id, name) VALUES (5, 'c-1', '유관순');
+INSERT INTO au_book (id, b_id, name) VALUES (6, 'd-1', '김하늘');
+INSERT INTO au_book (id, b_id, name) VALUES (7, 'a-1', '심심해');
+INSERT INTO au_book (id, b_id, name) VALUES (8, 'd-1', '허첨');
+INSERT INTO au_book (id, b_id, name) VALUES (9, 'e-1', '이한나');
+INSERT INTO au_book (id, b_id, name) VALUES (10, 'f-1', '정말자');
+INSERT INTO au_book (id, b_id, name) VALUES (11, 'f-2', '이영애');
+
+COMMIT;
+
+SELECT * 
+FROM au_book;
+
+--4 고객 테이블
+
+CREATE TABLE gogaek(
+      g_id       NUMBER(5) NOT NULL PRIMARY KEY 
+      ,g_name   VARCHAR2(20) NOT NULL
+      ,g_tel      VARCHAR2(20)
+);
+ 
+INSERT INTO gogaek (g_id, g_name, g_tel) VALUES (1, '우리서점', '111-1111');
+INSERT INTO gogaek (g_id, g_name, g_tel) VALUES (2, '도시서점', '111-1111');
+INSERT INTO gogaek (g_id, g_name, g_tel) VALUES (3, '지구서점', '333-3333');
+INSERT INTO gogaek (g_id, g_name, g_tel) VALUES (4, '서울서점', '444-4444');
+INSERT INTO gogaek (g_id, g_name, g_tel) VALUES (5, '수도서점', '555-5555');
+INSERT INTO gogaek (g_id, g_name, g_tel) VALUES (6, '강남서점', '666-6666');
+INSERT INTO gogaek (g_id, g_name, g_tel) VALUES (7, '강북서점', '777-7777');
+
+COMMIT;
+
+SELECT *
+FROM gogaek;
+
+--5 판매 테이블
+CREATE TABLE panmai(
+       id         NUMBER(5) NOT NULL PRIMARY KEY
+      ,g_id       NUMBER(5) NOT NULL CONSTRAINT FK_PANMAI_GID
+                     REFERENCES gogaek(g_id) ON DELETE CASCADE
+      ,b_id       VARCHAR2(10)  NOT NULL CONSTRAINT FK_PANMAI_BID
+                     REFERENCES book(b_id) ON DELETE CASCADE
+      ,p_date     DATE DEFAULT SYSDATE
+      ,p_su       NUMBER(5)  NOT NULL
+);
+
+INSERT INTO panmai (id, g_id, b_id, p_date, p_su) VALUES (1, 1, 'a-1', '2000-10-10', 10);
+INSERT INTO panmai (id, g_id, b_id, p_date, p_su) VALUES (2, 2, 'a-1', '2000-03-04', 20);
+INSERT INTO panmai (id, g_id, b_id, p_date, p_su) VALUES (3, 1, 'b-1', DEFAULT, 13);
+INSERT INTO panmai (id, g_id, b_id, p_date, p_su) VALUES (4, 4, 'c-1', '2000-07-07', 5);
+INSERT INTO panmai (id, g_id, b_id, p_date, p_su) VALUES (5, 4, 'd-1', DEFAULT, 31);
+INSERT INTO panmai (id, g_id, b_id, p_date, p_su) VALUES (6, 6, 'f-1', DEFAULT, 21);
+INSERT INTO panmai (id, g_id, b_id, p_date, p_su) VALUES (7, 7, 'a-1', DEFAULT, 26);
+INSERT INTO panmai (id, g_id, b_id, p_date, p_su) VALUES (8, 6, 'a-1', DEFAULT, 17);
+INSERT INTO panmai (id, g_id, b_id, p_date, p_su) VALUES (9, 6, 'b-1', DEFAULT, 5);
+INSERT INTO panmai (id, g_id, b_id, p_date, p_su) VALUES (10, 7, 'a-2', '2000-10-10', 15);
+
+COMMIT;
+
+SELECT *
+FROM panmai; 
+
+--테이블
+--book : b_id(PK), title, c_name
+--danga : b_id(PK.FK), price
+--au_book : id(PK), b_id(FK), name
+--gogaek : g_id(PK), g_name, g_tel
+--panmai : id(PK), g_id(FK), b_id(FK ), p_date, p_su
+--문제 책ID, 책 제목, 출판사, 책단가 출력
+
+SELECT b_id,title,g_id,price
+FROM book
 
 
 
