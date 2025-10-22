@@ -16,25 +16,25 @@ SELECT first_name,last_name,first_name||' '||last_name
     SELECT first_name,last_name,CONCAT(CONCAT(first_name,' '),last_name)
     FROM employees;
     
---LIKE ¿¬»êÀÚ È°¿ë¿¹Á¦
---¿ÍÀÏµåÄ«µå % _ ¸¦ ÀÏ¹İ ¹®ÀÚÃ³·³ ¾²°í½ÍÀº°æ¿ì ESCAPE
+--LIKE ì—°ì‚°ì í™œìš©ì˜ˆì œ
+--ì™€ì¼ë“œì¹´ë“œ % _ ë¥¼ ì¼ë°˜ ë¬¸ìì²˜ëŸ¼ ì“°ê³ ì‹¶ì€ê²½ìš° ESCAPE
 select last_name
 from employees
 where employee_id = 154;
---¼öÁ¤
+--ìˆ˜ì •
 UPDATE employees
 set last_name='c_brault'
 where employee_id=154;
 
 commit;
 
---¹®Á¦ employeesÅ×ÀÌºí¿¡¼­ last_name¿¡ 'c_'¹®ÀÚ¿­À» Æ÷ÇÔÇÑ last_nameÀ» °Ë»öÇØ¼­ Ãâ·Â
+--ë¬¸ì œ employeesí…Œì´ë¸”ì—ì„œ last_nameì— 'c_'ë¬¸ìì—´ì„ í¬í•¨í•œ last_nameì„ ê²€ìƒ‰í•´ì„œ ì¶œë ¥
 
 select last_name
 from employees
 where last_name like '%c\_%' ESCAPE '\';
 
---¹®Á¦ 100,101,102 »ç¿øµéÀÇ last_name Ãâ·Â
+--ë¬¸ì œ 100,101,102 ì‚¬ì›ë“¤ì˜ last_name ì¶œë ¥
 
 select *
 from employees;
@@ -43,7 +43,7 @@ select last_name
 from employees
 where employee_id in(100,101,102);
 
---¹®Á¦ 100,101,102 »ç¿øµéÀÇ last_name¼öÁ¤
+--ë¬¸ì œ 100,101,102 ì‚¬ì›ë“¤ì˜ last_nameìˆ˜ì •
 
 update employees
 set last_name=substr(last_name,1,1)||'%'||substr(last_name,2)
@@ -56,12 +56,12 @@ rollback;
 commit;
 
 
---¿À¶óÅ¬¿¡¼­ ·£´ıÇÑ °ª
-select floor(dbms_random.value(1,length(last_name))) -- ¼Ò¼öÁ¡ ÀÌÇÏ Àı»è
+--ì˜¤ë¼í´ì—ì„œ ëœë¤í•œ ê°’
+select floor(dbms_random.value(1,length(last_name))) -- ì†Œìˆ˜ì  ì´í•˜ ì ˆì‚­
         ,substr(last_name,1,floor(dbms_random.value(1,length(last_name))))||'%'||substr(last_name,floor(dbms_random.value(1,length(last_name))))
 from employees;
 
---¹®Á¦ last_name¼Ó¿¡ %¹®ÀÚ°¡ ÀÖ´Â »ç¿øÁ¤º¸ Ãâ·Â
+--ë¬¸ì œ last_nameì†ì— %ë¬¸ìê°€ ìˆëŠ” ì‚¬ì›ì •ë³´ ì¶œë ¥
 
 
 select *
@@ -69,7 +69,7 @@ from employees
 where last_name like '%\%%' escape '\';
 
 
---¹®Á¦ 100,101,102 »ç¿øµéÀÇ last_name¼Ó %Á¦°Å
+--ë¬¸ì œ 100,101,102 ì‚¬ì›ë“¤ì˜ last_nameì† %ì œê±°
 select replace(last_name,'%')
 from employees
 where employee_id in(100,101,102);
@@ -86,20 +86,20 @@ from employees
 where employee_id in(100,101,102);
 
 
---LIKE ¿¬»êÀÚ
---Á¤±ÔÇ¥Çö½ÄÀ» »ç¿ëÇÏ´Â ÇÔ¼ö
+--LIKE ì—°ì‚°ì
+--ì •ê·œí‘œí˜„ì‹ì„ ì‚¬ìš©í•˜ëŠ” í•¨ìˆ˜
 --REGEXP_LIKE()
 --REGEXP_INSTR()
 --REGEXP_SUBSTR()
 --REGEXP_REPLACE()
 
 
---scott¼ÒÀ¯ÀÚ·ÎºÎÅÍ hr°èÁ¤ÀÌ select±ÇÇÑºÎ¿©X
+--scottì†Œìœ ìë¡œë¶€í„° hrê³„ì •ì´ selectê¶Œí•œë¶€ì—¬X
 select *
 from scott.emp;
 
---hr°èÁ¤ÀÌ scott.emp °´Ã¼¸¦ »ç¿ëÇÒ¼öÀÖ´Â ±ÇÇÑÀÚÃ¼°¡¾øÀ½
--- ±ÇÇÑºÎ¿©
+--hrê³„ì •ì´ scott.emp ê°ì²´ë¥¼ ì‚¬ìš©í• ìˆ˜ìˆëŠ” ê¶Œí•œìì²´ê°€ì—†ìŒ
+-- ê¶Œí•œë¶€ì—¬
 select *
 from arirang;
 
@@ -112,9 +112,10 @@ from arirang;
 
 select 'Hello 123 hi 3453 hello hi HELLO'
     ,regexp_replace('Hello 123 hi 3453 hello hi HELLO','\d+')
-    , regexp_replace('Hello hi hello hi HELLO','hello','Çï·Î¿ì',1,0,'i')
+    , regexp_replace('Hello hi hello hi HELLO','hello','í—¬ë¡œìš°',1,0,'i')
 from dual;
 
 select employee_id, first_name||' '||last_name as name
         ,concat(concat(first_name,' '),last_name)as name2
 from employees;
+

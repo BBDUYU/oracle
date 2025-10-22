@@ -10,16 +10,16 @@ SELECT * FROM SCOTT.EMP;
 
 CREATE USER madang IDENTIFIED BY madang;
 
---DCL ¹®
---CONNECT, RESOURCE ·Ñ==¿ªÇÒ
---UNLIMITED TABLESPACE ±ÇÇÑ
+--DCL ë¬¸
+--CONNECT, RESOURCE ë¡¤==ì—­í• 
+--UNLIMITED TABLESPACE ê¶Œí•œ
 GRANT CONNECT, RESOURCE,UNLIMITED TABLESPACE TO madang;
 
 SELECT * FROM dba_users;
 
 SELECT * FROM all_users;
 
-SELECT * FROM user_users; --ÇöÀç ·Î±×ÀÎµÈ »ç¿ëÀÚ
+SELECT * FROM user_users; --í˜„ì¬ ë¡œê·¸ì¸ëœ ì‚¬ìš©ì
 
 ALTER USER HR IDENTIFIED BY HR ACCOUNT UNLOCK;
 
@@ -29,13 +29,13 @@ ALTER USER MADANG QUOTA UNLIMITED ON USERS;
 
 SELECT *
 FROM all_tables
---ÀÚ¹Ù °°´Ù == , ¿À¶óÅ¬ °°´Ù = 
---WHERE table_name='employees' °Ë»ö°á°ú ¾øÀ½
+--ìë°” ê°™ë‹¤ == , ì˜¤ë¼í´ ê°™ë‹¤ = 
+--WHERE table_name='employees' ê²€ìƒ‰ê²°ê³¼ ì—†ìŒ
 
 ALTER USER hr IDENTIFIED BY lion ;
 
 
---¿¹¾à¾î Á¶È¸ -> È®ÀÎ
+--ì˜ˆì•½ì–´ ì¡°íšŒ -> í™•ì¸
 
 select *
 from v$reserved_words
@@ -43,13 +43,13 @@ where keyword = upper('date');
 
 
 select *
-from user_tables; -- view = ?ÀÇ ¸ñ·ÏÀ» °¡Áö°íÀÖ´Â ¿À¶óÅ¬ °´Ã¼
+from user_tables; -- view = ?ì˜ ëª©ë¡ì„ ê°€ì§€ê³ ìˆëŠ” ì˜¤ë¼í´ ê°ì²´
 from tabs;
 
 select *
 from scott.emp;
 
---dept,emp ¼ÒÀ¯ÀÚ È®ÀÎ
+--dept,emp ì†Œìœ ì í™•ì¸
 select owner,table_name
 from dba_tables
 where owner='SCOTT';
@@ -58,11 +58,11 @@ where owner='SCOTT';
 CREATE PUBLIC SYNONYM arirang
 FOR scott.emp;
 
---»èÁ¦
+--ì‚­ì œ
 drop public synonym arirang;
 
---SYNONYM ARIRANGÀÌ(°¡) »ı¼ºµÇ¾ú½À´Ï´Ù.
---½Ã³ë´ÔÀÌ »ı¼º - Äõ¸® È®ÀÎ
+--SYNONYM ARIRANGì´(ê°€) ìƒì„±ë˜ì—ˆìŠµë‹ˆë‹¤.
+--ì‹œë…¸ë‹˜ì´ ìƒì„± - ì¿¼ë¦¬ í™•ì¸
 
 select *
 from all_synonyms
@@ -76,19 +76,19 @@ FOR HR.EMPLOYEES;
 
 drop public synonym employees;
 
-GRANT SELECT ON HR.EMPLOYEES TO SCOTT;  -- ±ÇÇÑ ºÎ¿©
-REVOKE SELECT ON HR.EMPLOYEES TO SCOTT; -- ±ÇÇÑ È¸¼ö
+GRANT SELECT ON HR.EMPLOYEES TO SCOTT;  -- ê¶Œí•œ ë¶€ì—¬
+REVOKE SELECT ON HR.EMPLOYEES TO SCOTT; -- ê¶Œí•œ íšŒìˆ˜
 
 
 
 SELECT 
-       NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 1, TO_CHAR( dates, 'DD')) ), ' ')  ÀÏ
-     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 2, TO_CHAR( dates, 'DD')) ), ' ')  ¿ù
-     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 3, TO_CHAR( dates, 'DD')) ), ' ')  È­
-     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 4, TO_CHAR( dates, 'DD')) ), ' ')  ¼ö
-     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 5, TO_CHAR( dates, 'DD')) ), ' ')  ¸ñ
-     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 6, TO_CHAR( dates, 'DD')) ), ' ')  ±İ
-     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 7, TO_CHAR( dates, 'DD')) ), ' ')  Åä
+       NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 1, TO_CHAR( dates, 'DD')) ), ' ')  ì¼
+     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 2, TO_CHAR( dates, 'DD')) ), ' ')  ì›”
+     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 3, TO_CHAR( dates, 'DD')) ), ' ')  í™”
+     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 4, TO_CHAR( dates, 'DD')) ), ' ')  ìˆ˜
+     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 5, TO_CHAR( dates, 'DD')) ), ' ')  ëª©
+     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 6, TO_CHAR( dates, 'DD')) ), ' ')  ê¸ˆ
+     , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 7, TO_CHAR( dates, 'DD')) ), ' ')  í† 
 FROM (
         SELECT TO_DATE(:yyyymm , 'YYYYMM') + LEVEL - 1  dates
         FROM dual
@@ -103,6 +103,7 @@ ORDER BY CASE
             WHEN TO_CHAR( dates, 'D' ) < TO_CHAR( TO_DATE( :yyyymm,'YYYYMM' ), 'D' ) THEN TO_CHAR( dates, 'W' ) + 1
             ELSE TO_NUMBER( TO_CHAR( dates, 'W' ) )
         END;
+
 
 
 
