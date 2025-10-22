@@ -5742,16 +5742,18 @@ WHERe tpsu_rank <= 3;
 -- [문제3] book 테이블에서 한 번도 판매가 된 적이 없는 책의 정보 조회...
 -- ( 책id, 제목, 단가 )
 
-SELECT b.b_id,title,price
-FROM book b
-    JOIN danga d ON b.b_id = d.b_id
-    JOIN panmai p ON p.b_id=b.b_id
-WHERE
-    p_su=0;
+SELECT b.b_id, title, price
+FROM book b JOIN danga d ON b.b_id = d.b_id
+WHERE b.b_id IN ( 
+    SELECT b_id
+    FROM book
+    MINUS
+    SELECT DISTINCT b_id  
+    FROM panmai
+);
     
-
-
-
+--풀이
+    
 -- [문제4] book 테이블에서 한 번이라도 판매가 된 적이 있는 책의 정보 조회...
 -- ( 책id, 제목, 단가 )    
 
@@ -5830,7 +5832,6 @@ WHERE tpsu_rank <= 3;
 --2       도시서점    6000      10%
 --6       강남서점    18060      30%
 --1       우리서점    8850      15%
-
 
 
 

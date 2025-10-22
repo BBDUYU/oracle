@@ -119,4 +119,3 @@ select employee_id, first_name||' '||last_name as name
         ,concat(concat(first_name,' '),last_name)as name2
 from employees;
 
-
