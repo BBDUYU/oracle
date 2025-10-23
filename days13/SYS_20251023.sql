@@ -104,7 +104,10 @@ ORDER BY CASE
             ELSE TO_NUMBER( TO_CHAR( dates, 'W' ) )
         END;
         
-
+--SCOTT 뷰를 생성할 수 있는 권한 부여
+-- DCL문
+GRANT CREATE VIEW TO scott;
+-- REVOKE
         
         
         
