@@ -5847,5 +5847,10 @@ JOIN danga d ON b.b_id = d.b_id
 JOIN panmai p ON b.b_id = p.b_id
 JOIN gogaek g ON p.g_id = p.g_id;
 
-      
+【형식】
+   CREATE [OR REPLACE] [FORCE | NOFORCE] VIEW 뷰이름
+      [(alias[,alias]...]
+   AS subquery
+   [WITH CHECK OPTION]
+   [WITH READ ONLY];
 
