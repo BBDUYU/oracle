@@ -5834,7 +5834,18 @@ WHERE tpsu_rank <= 3;
 --1       우리서점    8850      15%
 
 --책 ID, 제목,단가 고객ID,고객명, 판매날짜,판매수량 컬럼조회
-
+SELECT
+    b.b_id,
+    title,
+    price,
+    g.g_id,
+    g_name,
+    p_date,
+    p_su
+FROM book b
+JOIN danga d ON b.b_id = d.b_id
+JOIN panmai p ON b.b_id = p.b_id
+JOIN gogaek g ON p.g_id = p.g_id;
 
       
 
