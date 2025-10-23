@@ -1,5 +1,5 @@
 select * 
-from tabs;
+from tabs; 
 
 --2) emp 테이블 구조 확인 쿼리
 DESCRIBE emp;

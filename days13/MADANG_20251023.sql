@@ -4,7 +4,7 @@
  publisher VARCHAR2(40),
  price NUMBER(8)
  );
- 
+  
  CREATE TABLE Customer (
  custid NUMBER(2) PRIMARY KEY,
  name VARCHAR2(40),

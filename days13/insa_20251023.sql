@@ -8,7 +8,7 @@ CREATE TABLE insa(
        ,buseo VARCHAR2(15) NOT NULL
        ,jikwi VARCHAR2(15) NOT NULL
        ,basicPay NUMBER(10) NOT NULL
-       ,sudang NUMBER(10) NOT NULL
+       ,sudang NUMBER(10) NOT NULL 
 );
 
 INSERT INTO insa (num, name, ssn, ibsaDate, city, tel, buseo, jikwi, basicPay, sudang) VALUES

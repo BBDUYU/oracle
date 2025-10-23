@@ -80,7 +80,7 @@ GRANT SELECT ON HR.EMPLOYEES TO SCOTT;  -- 권한 부여
 REVOKE SELECT ON HR.EMPLOYEES TO SCOTT; -- 권한 회수
 
 
-
+ 
 SELECT 
        NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 1, TO_CHAR( dates, 'DD')) ), ' ')  일
      , NVL( MIN( DECODE( TO_CHAR( dates, 'D'), 2, TO_CHAR( dates, 'DD')) ), ' ')  월
@@ -103,3 +103,6 @@ ORDER BY CASE
             WHEN TO_CHAR( dates, 'D' ) < TO_CHAR( TO_DATE( :yyyymm,'YYYYMM' ), 'D' ) THEN TO_CHAR( dates, 'W' ) + 1
             ELSE TO_NUMBER( TO_CHAR( dates, 'W' ) )
         END;
+        
+        
+        
