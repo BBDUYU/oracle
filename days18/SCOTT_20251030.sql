@@ -6462,22 +6462,1000 @@ rollback;
        BCNF
        A C
        C B
+;
+-- SCOTT -- 
+
+-- ■ 0. 테이블 확인
+SELECT *
+FROM tabs
+WHERE table_name LIKE 'T\_%' ESCAPE '\';
+--
+
+-- ■ 1. 기존 테이블 삭제.
+DROP TABLE t_voter;
+DROP TABLE t_pollsub;
+DROP TABLE t_poll;
+DROP TABLE t_member;
+
+-- ■ 2. eXERD 로 모델링 후 테이블 생성.
+
+-- PL/SQL 
+-- ■ 3. 테이블 확인
+SELECT * FROM t_member;
+SELECT * FROM t_poll;
+SELECT * FROM t_pollsub;
+SELECT * FROM t_voter;
+
+-- ■ 4. PK 제약 조건 확인
+SELECT *  
+FROM user_constraints  
+WHERE table_name LIKE 'T_M%'  AND constraint_type = 'P';
+
+-- ■ 5. T_MEMBER 에 관리자 및 일반 회원 등록.
+INSERT INTO   T_MEMBER (  MEMBERSEQ,MEMBERID,MEMBERPASSWD,MEMBERNAME,MEMBERPHONE,MEMBERADDRESS )
+VALUES                 (  1,         'admin', '1234',  '관리자', '010-1111-1111', '서울 강남구' );
+INSERT INTO   T_MEMBER (  MEMBERSEQ,MEMBERID,MEMBERPASSWD,MEMBERNAME,MEMBERPHONE,MEMBERADDRESS )
+VALUES                 (  2,         'hong', '1234',  '홍길동', '010-1111-1112', '서울 동작구' );
+INSERT INTO   T_MEMBER (  MEMBERSEQ,MEMBERID,MEMBERPASSWD,MEMBERNAME,MEMBERPHONE,MEMBERADDRESS )
+VALUES                 (  3,         'kim', '1234',  '김준석', '010-1111-1341', '경기 남양주시' );
+
+COMMIT;
+
+-- ■ 6. INSERT 확인
+  SELECT * 
+  FROM t_member;
+
+-- ■ 7. 회원 정보 수정
+  1) 회원 정보 프로세스 
+  로그인 -> (홍길동) -> [내 정보] -> 내 정보 보기 -> [수정] -> [이름][][][][][][] -> [저장]
+  2) Query
+
+  UPDATE T_MEMBER
+  SET    MEMBERNAME = , MEMBERPHONE =  ...
+  WHERE MEMBERSEQ = 2;
+
+-- ■ 8. 회원 탈퇴
+  DELETE FROM T_MEMBER 
+  WHERE MEMBERSEQ = 2;
+
+-- ■ 9. 설문 등록
+  1) 
+   INSERT INTO T_POLL (PollSeq,Question,SDate, EDAte , ItemCount,PollTotal, RegDate, MemberSEQ )
+   VALUES             ( 1  ,'좋아하는 여배우?'
+                          , TO_DATE( '2025-09-20 00:00:00'   ,'YYYY-MM-DD HH24:MI:SS')
+                          , TO_DATE( '2025-09-30 18:00:00'   ,'YYYY-MM-DD HH24:MI:SS') 
+                          , 5
+                          , 0
+                          , TO_DATE( '2025-09-01 00:00:00'   ,'YYYY-MM-DD HH24:MI:SS')
+                          , 1
+                    );
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (1 ,'배슬기', 0, 1 );
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (2 ,'김옥빈', 0, 1 );
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (3 ,'아이유', 0, 1 );
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (4 ,'김선아', 0, 1 );
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (5 ,'홍길동', 0, 1 );      
+   COMMIT;
+
+  2)
+ INSERT INTO T_POLL (PollSeq,Question,SDate, EDAte , ItemCount,PollTotal, RegDate, MemberSEQ )
+   VALUES             ( 2  ,'좋아하는 과목?'
+                          , TO_DATE( '2025-10-01 00:00:00'   ,'YYYY-MM-DD HH24:MI:SS')
+                          , TO_DATE( '2025-10-15 18:00:00'   ,'YYYY-MM-DD HH24:MI:SS') 
+                          , 4
+                          , 0
+                          , TO_DATE( '2024-09-20 00:00:00'   ,'YYYY-MM-DD HH24:MI:SS')
+                          , 1
+                    );
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (6 ,'자바', 0, 2 );
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (7 ,'오라클', 0, 2 );
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (8 ,'HTML5', 0, 2 );
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (9 ,'JSP', 0, 2 );
+   
+   COMMIT;
+
+  3) 
+   INSERT INTO T_POLL (PollSeq,Question,SDate, EDAte , ItemCount,PollTotal, RegDate, MemberSEQ )
+   VALUES             ( 3  ,'좋아하는 색?'
+                          , TO_DATE( '2025-11-11 00:00:00'   ,'YYYY-MM-DD HH24:MI:SS')
+                          , TO_DATE( '2025-11-28 18:00:00'   ,'YYYY-MM-DD HH24:MI:SS') 
+                          , 3
+                          , 0
+                          , TO_DATE( '2025-10-01 00:00:00'   ,'YYYY-MM-DD HH24:MI:SS')
+                          , 1
+                    );
+
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (10 ,'빨강', 0, 3 );
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (11 ,'녹색', 0, 3 );
+INSERT INTO T_PollSub (PollSubSeq          , Answer , ACount , PollSeq  ) 
+VALUES                (12 ,'파랑', 0, 3 ); 
+   
+   COMMIT;                    
+--
+SELECT * FROM t_member;
+SELECT * FROM t_poll;
+SELECT * FROM t_pollsub;
+SELECT * FROM t_voter;
+ 
+-- ■ 10. 설문 목록 Query
+SELECT *
+FROM (
+    SELECT  pollseq 번호, question 질문, membername 작성자
+         , sdate 시작일, edate 종료일
+         , itemcount 항목수, polltotal 참여자수
+         , CASE 
+              WHEN  SYSDATE > edate THEN  '종료'
+              WHEN  SYSDATE BETWEEN  sdate AND edate THEN '진행 중'
+              ELSE '시작 전'
+           END 상태 -- 추출속성   종료, 진행 중, 시작 전
+    FROM t_poll p JOIN  t_member m ON m.memberseq = p.memberseq
+    ORDER BY 번호 DESC
+) t 
+WHERE 상태 != '시작 전';  
+
+--  1번 질문의 종요일을 25/10/30 수정
+UPDATE T_POLL 
+SET EDAte = TO_DATE( '2025-10-30 18:00:00'   ,'YYYY-MM-DD HH24:MI:SS')
+WHERE PollSeq = 1; 
+COMMIT;
+
+-- ■ 11. 
+SELECT question, membername
+               , TO_CHAR(regdate, 'YYYY-MM-DD AM hh:mi:ss')
+               , TO_CHAR(sdate, 'YYYY-MM-DD')
+               , TO_CHAR(edate, 'YYYY-MM-DD')
+               , CASE 
+                  WHEN  SYSDATE > edate THEN  '종료'
+                  WHEN  SYSDATE BETWEEN  sdate AND edate THEN '진행 중'
+                  ELSE '시작 전'
+               END 상태
+               , itemcount
+           FROM t_poll p JOIN t_member m ON p.memberseq = m.memberseq
+           WHERE pollseq = 2;
+
+-- ■ 12.  2번 설문의 답변수 조회
+  SELECT answer
+           FROM t_pollsub
+           WHERE pollseq = 2;
+
+-- ■ 13. 2번 설문의 총투표수 조회 
+SELECT  polltotal  
+FROM t_poll
+WHERE pollseq = 1;
+
+-- ■ 14.  1번 투표의 상세 보기
+SELECT answer, acount
+    , ( SELECT  polltotal      FROM t_poll    WHERE pollseq = 1 ) totalCount
+    -- ,  막대그래프
+    , ROUND (acount /  ( SELECT  polltotal      FROM t_poll    WHERE pollseq = 1 ) * 100) || '%'
+ FROM t_pollsub
+WHERE pollseq = 1;
+
+--
+select *
+from t_member;
+
+-- ■ 15. 투표
+ INSERT INTO t_voter 
+    ( vectorseq, username, regdate, pollseq, pollsubseq, memberseq )
+ VALUES
+    (      2   ,  '홍길동'      , SYSDATE,   1  ,     2 ,        2 );
+ COMMIT;
+  -- 1)         2/3 자동 UPDATE  [트리거]
+    -- (2) t_poll   totalCount = 1증가
+    UPDATE   t_poll
+    SET polltotal = polltotal + 1
+    WHERE pollseq = 1;
+    
+    -- (3)t_pollsub   account = 1증가
+    UPDATE   t_pollsub
+    SET acount = acount + 1
+    WHERE  pollsubseq = 2;
+    
+    commit;
+
+-----------------------------------------------------------------------------------------
+
+  [ DECLARE ]
+      -- 선언문(declarations)
+   BEGIN
+      -- 실행문(statements)
+   [ EXCEPTION ]
+      -- 예외 처리문(handlers)
+   END;
+
+--익명 프로시저
+DECLARE
+    -- vename VARCHAR2(10);
+    -- %TYPE 타입형 변수 선언
+    vename emp.ename%TYPE;
+    vpay NUMBER;
+    
+    -- 상수 선언 PI
+    -- vpi CONSTANT NUMBER := 3.141592;
+BEGIN
+    SELECT ename,sal+NVL(comm,0) pay
+        INTO vename,vpay
+    FROM emp
+    WHERE empno=7369;
+    DBMS_OUTPUT.PUT_LINE(vename||', '||vpay);
+--EXCEPTION
+END;
+
+-- ■  [문제] 30부서의 지역명을 얻어와서 
+-- 10번 부서의 지역명으로 설정하는 익명 프로시저 작성 + 테스트
+UPDATE dept
+SET loc = (
+            SELECT loc
+            FROM dept
+            WHERE deptno = 30
+)
+WHERE deptno = 10;
+
+DECLARE
+    vloc dept.loc%TYPE;
+BEGIN
+    SELECT loc INTO vloc
+    FROM dept
+    WHERE deptno=30;
+    
+    UPDATE dept
+    SET loc = vloc
+    WHERE deptno = 10;
+--EXCEPTION
+END;
+
+ROLLBACK;
+
+SELECT *
+FROM dept;
+
+
+-- ■  [문제] 30번 부서원들 중에 최고 급여(pay)를 받는 사원의 
+-- 정보를 출력하는 쿼리 작성
+--  ( empno, ename, hiredate, job, sal, comm )
+
+DECLARE
+    vdeptno dept.deptno%TYPE := 30;
+    vmaxpay NUMBER;
+    vempno emp.empno%TYPE;
+    vename emp.ename%TYPE;
+    vhiredate emp.hiredate%TYPE;
+    vjob emp.job%TYPE;
+    vsal emp.sal%TYPE;
+    vcomm emp.comm%TYPE;
+BEGIN
+    SELECT MAX(sal+NVL(comm,0))
+        INTO vmaxpay
+    FROM emp
+    WHERE deptno = vdeptno;
+    
+    SELECT empno, ename, hiredate, job, sal, comm
+        INTO vempno, vename, vhiredate, vjob, vsal, vcomm
+    FROM emp
+    WHERE deptno=vdeptno AND sal+NVL(comm,0) = vmaxpay;
+    DBMS_OUTPUT.PUT_LINE( '사원번호 :'  || vempno );
+    DBMS_OUTPUT.PUT_LINE( '사원명 :'    || vename );
+    DBMS_OUTPUT.PUT_LINE( '입사일자 :'  || vhiredate );  
+--EXCEPTION
+END;
+
+--1) TOP-N 
+SELECT *
+FROM (
+    SELECT *
+    FROM emp
+    WHERE deptno = 30
+    ORDER BY sal DESC
+)
+WHERE ROWNUM = 1;
+--2) RANK 함수
+SELECT *
+FROM ( 
+    SELECT 
+       RANK() OVER(ORDER BY sal DESC ) sal_rank
+       , emp.*
+    FROM emp
+    WHERE deptno = 30
+) 
+WHERE sal_Rank = 1;
+--3) 서브쿼리
+SELECT *
+FROM emp
+WHERE deptno = 30 AND sal = (
+                        SELECT MAX(sal)
+                        FROM emp
+                        WHERE deptno = 30 );
+                        
+-- 2-2) PL/SQL 익명프로시저 사용  + ( %ROWTYPE변수 )
+DECLARE
+    vdeptno dept.deptno%TYPE := 30;
+    vmaxpay NUMBER;
+--  emp 한 행 전체를 저장할 변수 1개 선언
+    vemprow emp%ROWTYPE;
+BEGIN
+    SELECT MAX(sal+NVL(comm,0))
+        INTO vmaxpay
+    FROM emp
+    WHERE deptno = vdeptno;
+    
+    SELECT empno, ename, hiredate, job, sal, comm
+        INTO vemprow.empno, vemprow.ename,vemprow.hiredate,vemprow.job, vemprow.sal, vemprow.comm
+    FROM emp
+    WHERE deptno=vdeptno AND sal+NVL(comm,0) = vmaxpay;
+    DBMS_OUTPUT.PUT_LINE( '사원번호 :'  || vemprow.empno );
+    DBMS_OUTPUT.PUT_LINE( '사원명 :'    || vemprow.ename );
+    DBMS_OUTPUT.PUT_LINE( '입사일자 :'  || vemprow.hiredate );  
+--EXCEPTION
+END;
+--emp 테이블의 모든 사원정보를 출력하는 익명프로시저
+DECLARE
+    vename emp.ename%TYPE;
+    vpay NUMBER;
+BEGIN
+    SELECT ename,sal+NVL(comm,0) pay
+        INTO vename,vpay
+    FROM emp
+--    WHERE empno=7369;
+    DBMS_OUTPUT.PUT_LINE(vename||', '||vpay);
+END;
+
+-- PL/SQL 에서 대입연산자 예제 := 
+DECLARE
+    va NUMBER := 10;
+    vb NUMBER;
+    vc NUMBER;
+BEGIN
+    vb := 20;
+    vc := va+vb;
+    
+    DBMS_OUTPUT.PUT_LINE(va||'+'||vb||'='||vc);
+END;
+
+--PL/SQL 제어문 IF, WHILE, FOR, GOTO 문
+
+IF 조건식 THEN
+    IF 조건식 THEN
+    ELSE
+    END IF;
+ELSIF 조건식 THEN
+ELSIF 조건식 THEN
+ELSE 
+END IF;
+
+-- ■  [문제] 정수를 입력받아서 변수에 대입하고
+--       홀수/짝수 라고 출력....
+DECLARE
+    vnum NUMBER(4) := 0;
+    vresult VARCHAR2(6);
+BEGIN
+    vnum := :inputNumber;
+    IF MOD(vnum,2)= 0 THEN
+        vresult :='짝수';
+    ELSE
+        vresult :='홀수';
+    END IF;
+    --DBMS_OUTPUT.PUT_LINE(vnum);
+    DBMS_OUTPUT.PUT_LINE(vresult);
+END;
+
+-- ■  [문제] PL/SQL IF문 사용해서 
+-- 국어점수를 입력받아서   수/우/미/양/가 출력 ( 익명 프로시저 )
+DECLARE
+   vkor NUMBER(4) := 0;
+   vgrade VARCHAR2(3); 
+BEGIN
+   vkor := :inputKor;   
+   IF vkor BETWEEN 0 AND 100  THEN
+     --수우미양가
+      IF vkor >= 90 THEN
+          vgrade := '수';
+       ELSIF vkor >= 80 THEN   
+          vgrade := '우';
+       ELSIF vkor >= 70 THEN
+         vgrade := '미';
+       ELSIF vkor >= 60 THEN  
+         vgrade := '양';
+       ELSE
+          vgrade := '가';
+       END IF;  
+   ELSE
+     --입력 잘못 예외 발생
+     RAISE_APPLICATION_ERROR(-20009, 'ScoreOutOfBound Exception');
+   END IF; 
+   DBMS_OUTPUT.PUT_LINE( vgrade );
+EXCEPTION
+   WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE( '점수 입력 잘못(0~100)!!!' );
+END;
+--
+DECLARE
+   vkor NUMBER(4) := 0;
+   vgrade VARCHAR2(3); 
+BEGIN
+   vkor := :inputKor;   
+   IF vkor BETWEEN 0 AND 100  THEN
+     --수우미양가
+--     vgrade := CASE TRUNC(vkor/10)
+--        WHEN 10 THEN '수'
+--        WHEN 9 THEN '수'
+--        WHEN 8 THEN '우'
+--        WHEN 7 THEN '미'
+--        WHEN 6 THEN '양'
+--        ELSE '가'
+    --DECODE
+     vgrade :=  DECODE(TRUNC(vkor/10),10,'수',9,'수',8,'우',7,'미',6,'양','가');
+   ELSE
+     --입력 잘못 예외 발생
+     RAISE_APPLICATION_ERROR(-20009, 'ScoreOutOfBound Exception');
+   END IF; 
+   DBMS_OUTPUT.PUT_LINE( vgrade );
+EXCEPTION
+   WHEN OTHERS THEN
+      DBMS_OUTPUT.PUT_LINE( '점수 입력 잘못(0~100)!!!' );
+END;
+
+--WHILE 문
+WHILE
+LOOP
+END LOOP;
+
+
+WHILE
+LOOP
+
+    EXIT WHEN 조건식
+END LOOP;
+
+-- ■  [문제] 1~10까지의 합 출력 ( PL/SQL + WHILE 문 )
+-- 출력형식 )  1+2+3+..+8+9+10=55
+
+DECLARE
+    vi NUMBER(2) :=1;
+    vsum NUMBER(3) :=0;
+BEGIN
+    LOOP 
+        EXIT WHEN vi = 11;
+        IF vi=10 THEN
+            DBMS_OUTPUT.PUT(vi);
+        ELSE 
+            DBMS_OUTPUT.PUT(vi || '+');
+        END IF;
+        vsum := vsum + vi;
+        vi := vi + 1;
+        
+    END LOOP;  
+    DBMS_OUTPUT.PUT_LINE('='|| vsum);
+END;
+
+-- ■  [문제] 1~10까지의 합 출력 ( PL/SQL + FOR 문 )
+--for( 초기식; 조건식; 증감식 ){
+--}
+FOR 변수명 IN [REVERSE] 시작값..끝값
+LOOP
+END LOOP;
+-- 
+DECLARE
+  -- vi NUMBER(2) := 1;
+  vsum NUMBER(3) := 0;
+BEGIN  
+  -- FOR문에서 사용되는 반복변수 vi는 선언하지 않아도 된다. ( 기억  )
+  FOR vi IN REVERSE 1..10
+  LOOP     
+     IF vi = 1 THEN
+        DBMS_OUTPUT.PUT(vi);
+     ELSE 
+        DBMS_OUTPUT.PUT(vi || '+');
+     END IF; 
+     vsum := vsum + vi; 
+  END LOOP;  
+   DBMS_OUTPUT.PUT_LINE( '=' ||  vsum);  
+--EXCEPTION
+END;
+
+-- ■  [ GOTO문 ]
+DECLARE
+  vchk NUMBER := 0;
+BEGIN
+   -- 강제로 이동
+   <<TOP>>
+   vchk := vchk + 1;
+   DBMS_OUTPUT.PUT_LINE( vchk );
+   IF vchk <> 5 THEN
+     GOTO TOP;
+   END IF;
+-- EXCEPTION
+END;
+
+
+
+-- ■ [ GOTO 문 가능하면 사용하지 말라. ]
+--DECLARE
+BEGIN
+  --
+  GOTO first_proc;
+  --
+  <<second_proc>>
+  DBMS_OUTPUT.PUT_LINE('> 2 처리 ');
+  GOTO third_proc; 
+  -- 
+  --
+  <<first_proc>>
+  DBMS_OUTPUT.PUT_LINE('> 1 처리 ');
+  GOTO second_proc; 
+  -- 
+  --
+  --
+  <<third_proc>>
+  DBMS_OUTPUT.PUT_LINE('> 3 처리 '); 
+--EXCEPTION
+END;
+
+-- [문제] WHILE문 사용  구구단 2~9단 ( 가로 )
+-- [문제] FOR문 사용  구구단 2~9단 ( 세로 )
 
 
 
 
+-- [문제] emp 테이블에서 10번 부서원 20% 인상, 20번 부서원10% 인상, 
+-- 그 외 부서는 15% 인상 ... 
+-- PL/SQL의 익명 프로시저 작성해서 처리 
+
+--DECLARE
+BEGIN
+    UPDATE emp
+    SET sal = CASE deptno
+        WHEN 10 THEN sal * 1.2
+        WHEN 10 THEN sal * 1.2
+        ELSE sal * 1.15
+    END;
+--EXCEPTION
+END;
+
+
+--IF/WHILE/FOR/GOTO
+--FOR 1-10합, 구구단 출력
+--FOR + SELECT 처리예제
+DECLARE
+    vename emp.ename%TYPE;
+    vhiredate emp.hiredate%TYPE;
+BEGIN
+    SELECT ename,hiredate
+        INTO vename,vhiredate
+    FROM emp;
+    WHERE empno=7369;
+    DBMS_OUTPUT.PUT_LINE(vename||', '||vhiredate);
+--EXCEPTION
+END;
+
+--커서
+1) 명시적커서
+DECLARE
+    vename emp.ename%TYPE;
+    vhiredate emp.hiredate%TYPE;
+    --커서 선언
+    CURSOR vempcursor IS (SELECT ename,hiredate FROM emp);
+BEGIN
+    --open : select문 실행
+    OPEN vempcursor;
+    
+    --fetch : 가져오다, 처리
+    LOOP
+        FETCH vempcursor INTO vename,vhiredate;
+        EXIT WHEN vempcursor%NOTFOUND;
+        DBMS_OUTPUT.PUT_LINE(vename||', '||vhiredate);
+        
+    END LOOP;
+    --close
+    CLOSE vempcursor;
+--    DBMS_OUTPUT.PUT_LINE(vename||', '||vhiredate);
+--EXCEPTION
+END;
+2) 암시적커서
+DECLARE
+    vename emp.ename%TYPE;
+    vhiredate emp.hiredate%TYPE;
+--    vemprow emp%ROWTYPE;
+BEGIN
+    FOR vemprow IN (SELECT ename,hiredate FROM emp)
+    LOOP
+    DBMS_OUTPUT.PUT_LINE(vemprow.ename||', '||vemprow.hiredate);
+    END LOOP;
+ 
+--    DBMS_OUTPUT.PUT_LINE(vename||', '||vhiredate);
+--EXCEPTION
+END;
+
+--2-2 암시적 커서
+DECLARE
+    vename emp.ename%TYPE;
+    vhiredate emp.hiredate%TYPE;
+--    vemprow emp%ROWTYPE;
+    CURSOR vdecursor IS (SELECT ename,hiredate FROM emp);
+BEGIN
+    FOR vemprow IN vdecursor
+    LOOP
+    DBMS_OUTPUT.PUT_LINE(vemprow.ename||', '||vemprow.hiredate);
+    END LOOP;
+ 
+--    DBMS_OUTPUT.PUT_LINE(vename||', '||vhiredate);
+--EXCEPTION
+END;
+
+-- 사용자 정의 구조체 타입선언
+--1
+DECLARE
+  vdeptno dept.deptno%TYPE;
+  vdname dept.dname%TYPE;
+  vempno emp.empno%TYPE;
+  vename emp.ename%TYPE;
+  vpay NUMBER;
+BEGIN
+   SELECT d.deptno, dname, empno, ename, sal + NVL(comm,0) pay
+     INTO vdeptno, vdname, vempno, vename, vpay
+   FROM dept d JOIN emp e ON d.deptno = e.deptno
+   WHERE empno = 7369;   
+   DBMS_OUTPUT.PUT_LINE( vdeptno || ', ' || vdname  
+    || ', ' ||  vempno  || ', ' || vename  || ', ' ||  vpay );
+--EXCEPTION
+END;
 
 
 
+--2
+DECLARE
+  vdrow dept%ROWTYPE;
+  verow emp%ROWTYPE;
+  vpay NUMBER;
+BEGIN
+   SELECT d.deptno, dname, empno, ename, sal + NVL(comm,0) pay
+     INTO vdrow.deptno, vdrow.dname, verow.empno, verow.ename, vpay 
+   FROM dept d JOIN emp e ON d.deptno = e.deptno
+   WHERE empno = 7369;   
+   DBMS_OUTPUT.PUT_LINE( vdrow.deptno || ', ' || vdrow.dname 
+    || ', ' ||  verow.empno  || ', ' || verow.ename  || ', ' ||  vpay );
+--EXCEPTION
+END;
 
 
+--3 deptno,dname,empno,ename,pay 값을 저장할 수 있는
+--사용자 정의한 새로운 자료형을 하나 선언해서 사용하면 편리
+DECLARE
+   TYPE EmpDeptType IS RECORD
+  (
+      deptno dept.deptno%TYPE,
+      dname dept.dname%TYPE,
+      empno emp.empno%TYPE,
+      ename emp.ename%TYPE,
+      pay NUMBER
+    );
+  
+  -- 변수 선언
+   vrow EmpDeptType;
+  
+BEGIN
+   SELECT d.deptno, dname, empno, ename, sal + NVL(comm,0) pay
+     INTO  vrow.deptno,  vrow.dname,  vrow.empno,  vrow.ename, vrow.pay
+   FROM dept d JOIN emp e ON d.deptno = e.deptno
+   WHERE empno = 7369;   
+  DBMS_OUTPUT.PUT_LINE( vrow.deptno || ', ' || vrow.dname 
+    || ', ' ||  vrow.empno  || ', ' || vrow.ename  || ', ' ||  vrow.pay );
+--EXCEPTION
+END;
+
+-- [문제] insa 테이블에서 사원번호(num)=1001
+--  급여 파악 -> 2500000 많으면 세금을 2.5%,   2000000 많으면 2%
+--              0% 출력..
+DECLARE
+    vname insa.name%TYPE;
+    vpay NUMBER ;
+    vtax NUMBER ;
+    vsil NUMBER ; -- 실수령액 vpay - vtax = vsil
+BEGIN
+    SELECT name, basicpay + sudang
+        INTO vname, vpay
+    FROM insa
+    WHERE num = 1001;
+    
+    IF vpay >= 2500000 THEN
+        vtax := vpay * 0.025;
+    ELSIF vpay >= 2000000 THEN
+        vtax := vpay * 0.02;
+    ELSE
+        vtax := 0;
+    END IF;
+    
+    vsil := vpay - vtax;
+    DBMS_OUTPUT.PUT_LINE(vname || '   ' || vpay || '   ' || vtax || '   ' || vsil);  
+END;
 
 
+------------------------------------
+PL/SQL 6가지 종류
+1) 익명프로시저
+2) 저장프로시저
+    (1) 형식
+        CREATE OR REPLACE PROCEDURE up프로시저명
+        (
+            --입력용 IN    P파라미터 선언,
+            --출력용 OUT   P파라미터 선언,
+            --입출력용 IN OUT   P파라미터 선언
+        )
+        IS
+        --상수,변수선언;
+        BEGIN
+        --실행쿼리
+        EXCEPTION
+        --예외처리
+        END;
+--(2) 저장프로시저를 실행하는 3가지 방법
+    --ㄱ. EXEC 문을 사용해서 실행
+    --ㄴ. 익명프로시저를 사용
+    --ㄷ. 또 다른 저장 프로시저에서 사용
+
+-- 예) 사원번호를 입력받아서 해당사원을 삭제하는 쿼리
+DELETE FROM emp
+WHERE empno=????;
+-- 저장 프로시저 생성 + 저장프로시저 호출
+DROP TABLE tbl_emp PURGE;
+
+CREATE TABLE tbl_emp
+AS
+    (SELECT * FROM EMP);
+-- 
+SELECT *
+FROM tbl_emp;
+-- 
+CREATE OR REPLACE PROCEDURE upDelTblEmp
+(
+    -- 파라미터는 자료형의 크기는 설정하지 않는다.
+    -- pempno IN       NUMBER(4)   X
+    -- pempno IN       NUMBER
+    -- pempno IN          tbl_emp.empno%TYPE
+    pempno           tbl_emp.empno%TYPE
+)
+IS
+    -- X;
+BEGIN
+    DELETE FROM tbl_emp
+    WHERE empno = pempno;
+    COMMIT;
+-- EXCEPTION
+    -- 예외 처리
+    -- ROLLBACK;
+END;
+-- Procedure UPDELTBLEMP이(가) 컴파일되었습니다.
+
+EXEC UPDELTBLEMP(9999);
+
+SELECT *
+FROM tbl_emp;
+
+--또 다른 저장프로시저에서 저장 프로시저를 호출
+CREATE OR REPLACE PROCEDURE upOther
+(
+    pempno tbl_emp.empno%TYPE
+)
+IS
+BEGIN
+    UPDELTBLEMP(pempno);
+END;
+
+EXEC UPDELTBLEMP(7566);
+
+--문제 dept -> tbl_dept
+DROP TABLE tbl_dept PURGE;
+CREATE TABLE tbl_dept
+AS
+(SELECT * FROM dept);
+ALTER TABLE tbl_dept
+ADD CONSTRAINT pk_tbl_dept_deptno PRIMARY KEY( deptno );
+
+SELECT *
+FROM tbl_dept;
+
+--TBL_DEPT테이블에 CRUD 작업을 하는 저장프로시저 생성 + 테스트
+--1) 모든 부서 정보를 조회하는 저장프로시저 생성 UPSELECTTBLDEPT
+CREATE OR REPLACE PROCEDURE UPSELECTTBLDEPT
+IS
+    CURSOR vdcursor IS(SELECT * FROM tbl_dept);
+    vdrow tbl_dept%ROWTYPE;
+BEGIN
+    OPEN vdcursor;
+    --fetch
+    LOOP
+        FETCH vdcursor INTO vdrow;
+        EXIT WHEN vdcursor%NOTFOUND;
+        DBMS_OUTPUT.PUT( vdcursor%ROWCOUNT || ' : '  );
+        DBMS_OUTPUT.PUT_LINE( vdrow.deptno || ', ' || vdrow.dname 
+        || ', ' ||  vdrow.loc);  
+    END LOOP;
+    CLOSE vdcursor;
+--EXCEPTION
+END;
+
+EXEC UPSELECTTBLDEPT;
 
 
+--암시적 커서를 사용해서 저장프로시저를 수정
+CREATE OR REPLACE PROCEDURE UPSELECTTBLDEPT
+IS
+    CURSOR vdcursor IS(SELECT * FROM tbl_dept);
+BEGIN
+    FOR vdrow IN vdcursor
+    LOOP
+        DBMS_OUTPUT.PUT( vdcursor%ROWCOUNT || ' : '  );
+        DBMS_OUTPUT.PUT_LINE( vdrow.deptno || ', ' || vdrow.dname 
+        || ', ' ||  vdrow.loc);  
+    END LOOP;
+    CLOSE vdcursor;
+--EXCEPTION
+END;
+EXEC UPSELECTTBLDEPT;
 
+--tbl_dept SELECT 저장 프로시저 생성 + 테스트
+--tbl_dept INSERT 저장 프로시저 생성 + 테스트
+50/60/70 시퀀스 생성
+INSERT INTO tbl_dept
+VALUES (시퀀스.nextval,)
+--
+SELECT * 
+FROM tbl_dept;
+--
+CREATE SEQUENCE seq_tbl_dept
+INCREMENT BY 10
+START WITH 50
+MAXVALUE 90
+MINVALUE 10
+    NOCYCLE
+    NOCACHE;
+--
+EXECUTE upinserttbldept( pdname=>'QC', ploc=>'SEOUL' );
+EXECUTE upinserttbldept( pdname =>'QC2' );
+EXECUTE upinserttbldept( ploc => 'POHANG' );
+EXECUTE upinserttbldept;
 
+SELECT * FROM tbl_dept;
 
+CREATE OR REPLACE PROCEDURE upinserttbldept
+(
+    pdname tbl_dept.dname%TYPE :=NULL,
+    ploc tbl_dept.loc%TYPE DEFAULT NULL
+)
+IS
+BEGIN
+    INSERT INTO tbl_dept(deptno,dname,loc)
+    VALUES(seq_tbl_dept.NEXTVAL,pdname,ploc);
+    COMMIT;
+--EXCEPTION
+END;
 
+-- [문제]  삭제할 부서번호를 입력받아서 해당 부서를 삭제하는 프로시저 생성
+--     updeletetbldept
+CREATE OR REPLACE PROCEDURE updeletetbldept
+(
+    pdeptno tbl_dept.deptno%TYPE
+)
+IS
+BEGIN
+    DELETE FROM tbl_dept
+    WHERE deptno = pdeptno;
+--EXCEPTION
+END;
+EXECUTE updeletetbldept(pdeptno=>70);
+
+-- [문제] tbl_dept 테이블의 레코드 수정  upupdatetbldept
+EXEC upupdatetbldept( 50, 'X', 'Y' );  -- dname, loc
+EXEC upupdatetbldept( pdeptno=>50,  pdname=>'QC3' );  -- loc
+EXEC upupdatetbldept( pdeptno=>50,  ploc=>'SEOUL' );  -- 
+
+SELECT *
+FROM tbl_dept;
+
+CREATE OR REPLACE PROCEDURE upupdatetbldept
+(
+    pdeptno tbl_dept.deptno%TYPE,
+    pdname tbl_dept.dname%TYPE DEFAULT NULL,
+    ploc tbl_dept.loc%TYPE DEFAULT NULL
+)
+IS
+BEGIN
+    UPDATE tbl_dept
+    SET dname=nvl(pdname,dname),
+        loc=nvl(ploc,loc)
+    WHERE deptno=pdeptno;
+--EXCEPTION
+END;
+
+--저장프로시저 + tbl_dept 테이블 crud 작업 테스트
+--저장프로시저의 입력,출력,입출력용 파라미터 설명
+--파라미터의 모드 : in,out,in out
+
+--OUT 출력용 파라미터를 사용하는 저장 프로시저를 생성 + 테스트
+--insa 테이블에 사원번호를 IN 파라미터로 받아서
+--      사원명, 주민번호를 OUT 파라미터로 저/프를 호출하는 곳에서 사용
+CREATE OR REPLACE PROCEDURE upSelectInsa
+(
+   pnum IN insa.num%TYPE
+   , pname OUT insa.name%TYPE
+   , pssn  OUT insa.ssn%TYPE
+)
+IS
+   vssn  insa.ssn%TYPE;
+BEGIN
+   SELECT name , ssn 
+       INTO pname, vssn 
+       -- 출력용 파라미터에 저장
+       -- INTO vname, vssn  변수 저장 -> DBMS_OUTPUT 출력
+   FROM insa
+   WHERE num = pnum;
+   
+   pssn := RPAD(SUBSTR(vssn, 0, 8), 14, '*');
+-- EXCEPTION
+END;
+--EXEC X
+DECLARE
+    vname insa.name%TYPE;
+    vssn insa.ssn%TYPE;
+BEGIN
+    upSelectInsa(1001,vname,vssn);
+    DBMS_OUTPUT.PUT_LINE( vname || ' , ' || vssn );
+END;
+
+-- 저장 프로시저 IN + OUT 동시에 입출력용으로 사용하는 파라미터가 있는 저장 프로시저
+CREATE OR REPLACE PROCEDURE upinout
+(
+  pssn IN OUT VARCHAR2
+)
+IS
+BEGIN 
+   pssn := RPAD(SUBSTR(pssn, 0, 8), 14, '*');
+-- EXCEPTION
+END;
+
+DECLARE
+    vssn insa.ssn%TYPE := '911123-1700001';
+BEGIN
+    upinout(vssn);
+    DBMS_OUTPUT.PUT_LINE(vssn);
+END;
+
+-- PL/SQL 종류 6가지
+1)익명프로시저
+2)저장프로시저
+3)저장함수 (Stored Function)
+
+CREATE OR REPLACE FUNCTION ufGender
+(
+   pssn insa.ssn%TYPE
+)
+RETURN VARCHAR2 -- 문자열 반환   VARCHAR2(6)X
+IS
+   vgender VARCHAR2(6) := '남자';
+BEGIN
+    IF MOD( SUBSTR(pssn, -7, 1), 2 ) = 0 THEN
+        vgender := '여자';
+     END IF; 
+     
+    RETURN (vgender);
+--EXCEPTION
+END;
+--
+SELECT name, ssn , ufGender(ssn)
+FROM insa;
+
+-- 
+SELECT ssn, uf_Age(ssn, 1),  uf_Age(ssn, 0) 
+FROM insa;
 
 
