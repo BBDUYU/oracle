@@ -7459,3 +7459,357 @@ SELECT ssn, uf_Age(ssn, 1),  uf_Age(ssn, 0)
 FROM insa;
 
 
+-- SCOTT --   
+-- 트리거( TRIGGER )
+-- 권총 -> 방아쇠 -> 자동 -> 총알 
+--          A동작          B동작
+예) 입고 테이블
+    A상품  5    INSERT  (1)
+  
+  
+    자동으로 트리거
+    재고 테이블
+    A상품  15   UPDATE  (2)
+    
+    트리거 : 하나의 작업단위로 묶어서  (1) + (2)  자동 커밋
+
+-- 간단한 트리거 예제....
+PL/SQ 종류 5가지 
+1) 익명 프로시저
+2) 저장 프로시저
+3) 저장 함수
+*** 4) 트리거
+5) 패키지
+
+--  트리거 테스트 --
+DROP TABLE tbl_exam1 PURGE;
+CREATE TABLE tbl_exam1
+(
+   id NUMBER PRIMARY KEY
+   , name VARCHAR2(20)
+);
+-- Table TBL_EXAM1이(가) 생성되었습니다.
+
+CREATE TABLE tbl_exam2
+(
+   memo  VARCHAR2(100)
+   , ilja DATE DEFAULT SYSDATE
+);
+-- Table TBL_EXAM2이(가) 생성되었습니다.
+
+-- 예제) tbl_exam1 테이블에 Insert, Update, Delete 작업이 발생하면
+-- 자동으로 tbl_exam2 테이블에 로그를 기록(INsert)하는 트리거 작성.
+
+CREATE OR REPLACE TRIGGER ut_log
+AFTER
+-- 어떤 테이블에 어떤 이벤트가 발생할 때 자동으로 실행되는 트리거
+INSERT OR UPDATE OR DELETE ON tbl_exam1
+FOR EACH ROW -- 행 마다 처리되는 트리거
+BEGIN
+   -- tbl_exam2 로그 기록
+   -- tbl_exam1 테이블에 새로 INSERT 되어지는 name 값을 접근할 때 
+   -- :NEW 의사컬럼    :NEW.name
+   -- :OLD 의사컬럼
+   
+   IF INSERTING THEN
+     INSERT INTO tbl_exam2 ( memo ) VALUES ( :NEW.name || ' 추가 로그 기록...');
+   ELSIF UPDATING THEN
+     INSERT INTO tbl_exam2 ( memo ) VALUES (  :OLD.name || ' -> ' || :NEW.name || '수정 로그 기록...');     
+   ELSIF DELETING THEN
+     INSERT INTO tbl_exam2 (memo) VALUES ( :OLD.name || '삭제 로그 기록...');
+   END IF; 
+   
+   -- COMMIT 또는 ROLLBACK X
+-- EXCEPTION
+END;
+-- Trigger UT_LOG이(가) 컴파일되었습니다
+
+-- 2    kim   :OLD
+--      admin :NEW 수정 UPDATE
+CREATE OR REPLACE TRIGGER ut_log_update
+AFTER 
+UPDATE ON tbl_exam1
+FOR EACH ROW  
+BEGIN   
+   INSERT INTO tbl_exam2 ( memo ) VALUES (  :OLD.name || ' -> ' || :NEW.name || '수정 로그 기록...');     
+   -- COMMIT 또는 ROLLBACK X
+-- EXCEPTION
+END;
+
+--  (1) +_ (2)
+INSERT INTO tbl_exam1 VALUES (1, 'hong'); -- 트리거 로그 기록 확인
+ROLLBACK;
+INSERT INTO tbl_exam1 VALUES (2, 'kim');
+INSERT INTO tbl_exam1 VALUES (3, 'park');
+COMMIT;
+--
+--  2 삭제할 때도 트리거에 의해서 로그 작성.
+DELETE FROM tbl_exam1
+WHERE id = 2;
+
+--3.     1 , hong  -> admin 수정
+UPDATE tbl_exam1
+SET name = 'admin'
+WHERE id = 1;
+--
+SELECT * FROM tbl_exam1;
+SELECT * FROM tbl_exam2;
+
+COMMIT;
+-------------------------------------------------------------
+--tbl_exam1 대상테이블로
+--DML문이 근무시간(11시 - 18시) 외 또는 주말에는 처리 X
+
+CREATE OR REPLACE TRIGGER ut_log_befor
+BEFORE
+-- 어떤 테이블에 어떤 이벤트가 발생할 때 자동으로 실행되는 트리거
+INSERT OR UPDATE OR DELETE ON tbl_exam1
+--FOR EACH ROW -- 행 마다 처리되는 트리거
+--DECLARE
+-- 변수선언
+BEGIN
+    IF 
+        TO_CHAR( SYSDATE, 'DY' ) IN ( '토','일') 
+        OR TO_CHAR( SYSDATE, 'hh24' ) < 11  
+        OR TO_CHAR( SYSDATE, 'hh24' ) > 18  
+    THEN
+        RAISE_APPLICATION_ERROR(-20001, '근무시간이 아니기에 DML 작업 처리할 수 없다.');
+    END IF; 
+   
+   -- COMMIT 또는 ROLLBACK X
+-- EXCEPTION
+END;
+
+INSERT INTO tbl_exam1 VALUES (4, 'lee');
+
+--실무에 가까운 트리거 예제
+상품테이블
+PK             재고수량
+1   냉장고       8          트리거 재고수량 수정.
+2   TV          20
+3
+
+판매테이블
+  냉장고         7             INSERT
+
+입고테이블
+  냉장고       5     INSERT
+
+-- 상품 테이블 작성
+DROP TABLE 상품 ;
+DROP TABLE 입고 ;
+DROP TABLE 판매 ;
+-- 
+CREATE TABLE 상품 (
+   상품코드      VARCHAR2(6) NOT NULL PRIMARY KEY
+  ,상품명        VARCHAR2(30)  NOT NULL
+  ,제조사        VARCHAR2(30)  NOT NULL
+  ,소비자가격     NUMBER
+  ,재고수량       NUMBER DEFAULT 0
+);
+-- Table 상품이(가) 생성되었습니다.
+-- 입고 테이블 작성
+CREATE TABLE 입고 (
+   입고번호      NUMBER PRIMARY KEY
+  ,상품코드      VARCHAR2(6) NOT NULL CONSTRAINT FK_ibgo_no
+                 REFERENCES 상품(상품코드)
+  ,입고일자     DATE
+  ,입고수량      NUMBER
+  ,입고단가      NUMBER
+);
+-- Table 입고이(가) 생성되었습니다.
+
+-- 판매 테이블 작성
+CREATE TABLE 판매 (
+   판매번호      NUMBER  PRIMARY KEY
+  ,상품코드      VARCHAR2(6) NOT NULL CONSTRAINT FK_pan_no
+                 REFERENCES 상품(상품코드)
+  ,판매일자      DATE
+  ,판매수량      NUMBER
+  ,판매단가      NUMBER
+);
+--
+-- 상품 테이블에 자료 추가
+INSERT INTO 상품(상품코드, 상품명, 제조사, 소비자가격) VALUES
+        ('AAAAAA', '디카', '삼싱', 100000);
+INSERT INTO 상품(상품코드, 상품명, 제조사, 소비자가격) VALUES
+        ('BBBBBB', '컴퓨터', '엘디', 1500000);
+INSERT INTO 상품(상품코드, 상품명, 제조사, 소비자가격) VALUES
+        ('CCCCCC', '모니터', '삼싱', 600000);
+INSERT INTO 상품(상품코드, 상품명, 제조사, 소비자가격) VALUES
+        ('DDDDDD', '핸드폰', '다우', 500000);
+INSERT INTO 상품(상품코드, 상품명, 제조사, 소비자가격) VALUES
+         ('EEEEEE', '프린터', '삼싱', 200000);
+COMMIT;
+--
+SELECT * FROM 상품;
+
+--트리거생성 : 입고테입ㄹ에 상품이 입고가될때 자동으로 상품테이블의 입고된 상품의 재고수량을 UPDATE하는 트리거
+CREATE OR REPLACE TRIGGER ut_insIpgo
+AFTER
+INSERT ON 입고
+FOR EACH ROW
+--DECLARE
+BEGIN
+  UPDATE 상품
+  SET 재고수량 = 재고수량 + :NEW.입고수량
+  WHERE 상품코드 = :NEW.상품코드; 
+END;
+--
+-------
+INSERT INTO 입고 (입고번호, 상품코드, 입고일자, 입고수량, 입고단가)
+              VALUES (1, 'AAAAAA', '2023-10-10', 5,   50000);
+INSERT INTO 입고 (입고번호, 상품코드, 입고일자, 입고수량, 입고단가)
+              VALUES (2, 'BBBBBB', '2023-10-10', 15, 700000);
+INSERT INTO 입고 (입고번호, 상품코드, 입고일자, 입고수량, 입고단가)
+              VALUES (3, 'AAAAAA', '2023-10-11', 15, 52000);
+INSERT INTO 입고 (입고번호, 상품코드, 입고일자, 입고수량, 입고단가)
+              VALUES (4, 'CCCCCC', '2023-10-14', 15,  250000);
+INSERT INTO 입고 (입고번호, 상품코드, 입고일자, 입고수량, 입고단가)
+              VALUES (5, 'BBBBBB', '2023-10-16', 25, 700000);
+COMMIT;
+--
+SELECT * FROM 입고;
+SELECT * FROM 상품;
+
+
+-- 문제2) 입고 테이블에서 입고가 수정되는 경우    상품테이블의 재고수량 수정. 
+UPDATE 입고 
+SET 입고수량 = 30 
+WHERE 입고번호 = 5;
+COMMIT;
+--
+CREATE OR REPLACE TRIGGER ut_updIpgo
+AFTER
+UPDATE ON 입고
+FOR EACH ROW
+--DECLARE
+BEGIN
+  UPDATE 상품
+  SET 재고수량 = 재고수량 - :OLD.입고수량 + :NEW.입고수량
+  WHERE 상품코드 = :NEW.상품코드; 
+END;
+-- 
+
+-- 문제3) 입고 테이블에서 입고가 취소되어서 입고 삭제.    상품테이블의 재고수량 수정. 
+--  5 입고  25 -> 30    취소
+DELETE FROM 입고 
+WHERE 입고번호 = 5;
+COMMIT;
+--
+CREATE OR REPLACE TRIGGER ut_delIpgo
+AFTER
+DELETE ON 입고
+FOR EACH ROW
+--DECLARE
+BEGIN
+  UPDATE 상품
+  SET 재고수량 = 재고수량 - :OLD.입고수량 
+  WHERE 상품코드 = :OLD.상품코드; 
+END;
+
+
+--------------
+-- 문제4) 판매테이블에 판매가 되면 (INSERT) 
+--       상품테이블의 재고수량이 수정  
+--       ut_insPan
+-- 
+CREATE OR REPLACE TRIGGER ut_insPan 
+   BEFORE
+INSERT ON 판매
+FOR EACH ROW
+DECLARE
+  vqty 상품.재고수량%TYPE;
+BEGIN
+   SELECT 재고수량  INTO vqty
+   FROM 상품
+   WHERE 상품코드 = :NEW.상품코드;
+   
+   IF vqty < :NEW.판매수량 THEN
+      RAISE_APPLICATION_ERROR(-20007, '재고수량 부족으로 판매 오류');
+   ELSE
+      UPDATE  상품
+      SET 재고수량 = 재고수량 - :NEW.판매수량
+      WHERE 상품코드 = :NEW.상품코드;
+   END IF;
+END;
+--
+INSERT INTO 판매 (판매번호, 상품코드, 판매일자, 판매수량, 판매단가) VALUES
+               (1, 'AAAAAA', '2023-11-10', 5, 1000000); 
+INSERT INTO 판매 (판매번호, 상품코드, 판매일자, 판매수량, 판매단가) VALUES
+               (2, 'AAAAAA', '2023-11-12', 50, 1000000);
+COMMIT; 
+SELECT * FROM 상품;
+SELECT * FROM 판매;
+
+-- 문제5) 판매번호 1  20     판매수량 5 -> 10 , 30
+CREATE OR REPLACE TRIGGER   ut_updPan
+BEFORE
+UPDATE ON 판매 
+FOR EACH ROW -- 행 레벨 트리거
+DECLARE
+  vqty 상품.재고수량%TYPE;
+BEGIN
+  SELECT 재고수량 INTO vqty   -- 15
+  FROM 상품
+  WHERE 상품코드 = :NEW.상품코드;
+ 
+  -- :OLD.판매수량  5
+  -- :NEW.판매수량  10
+  IF  ( vqty + :OLD.판매수량 ) < :NEW.판매수량 THEN
+    RAISE_APPLICATION_ERROR(-20007, '재고수량 부족으로 판매 오류');
+  ELSE 
+     UPDATE 상품
+     SET 재고수량 = 재고수량 +:OLD.판매수량  - :NEW.판매수량
+     WHERE 상품코드 = :NEW.상품코드;
+  END IF;  
+--EXCEPTION
+END;
+-- 
+UPDATE 판매 
+SET 판매수량 = 30  -- 30
+WHERE 판매번호 = 1;
+
+
+-- 문제6)  판매번호 1   (AAAAA  10)   판매 취소 (DELETE)
+--      상품테이블에 재고수량 수정
+--      ut_delPan
+CREATE OR REPLACE TRIGGER ut_delPan
+  AFTER DELETE ON 판매
+    FOR EACH ROW
+    BEGIN
+        -- 판매가 취소되면 해당 상품 재고를 판매수량만큼 복구
+        UPDATE 상품
+        SET 재고수량 = 재고수량 + :OLD.판매수량
+        WHERE 상품코드 = :OLD.상품코드;
+END;
+-- 
+DELETE FROM 판매 
+WHERE 판매번호=1;
+-- 
+SELECT * FROM 판매;
+SELECT * FROM 상품;
+
+
+-- SCOTT --   
+-- ■ 1. 
+DROP TABLE tbl_emp;
+-- ■ 2. 
+CREATE TABLE tbl_emp
+AS 
+SELECT *
+FROM emp
+WHERE 1 = 0 ;
+-- ■ 3. 
+DROP TABLE tbl_dept;
+-- ■ 4. 
+CREATE TABLE tbl_dept
+AS 
+SELECT *
+FROM dept
+WHERE 1 = 0 ;
+--
+SELECT * FROM tbl_dept;
+SELECT * FROM tbl_emp;
+
+
